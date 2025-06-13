@@ -136,6 +136,14 @@ turndownService.addRule('wordpressCustomFormatting', {
   }
 });
 
+// For Markdown/paragraph fix, ensure Turndown is configured to add line breaks for <p>, <br>, and block elements.
+turndownService.addRule('paragraphLineBreaks', {
+  filter: ['p', 'br'],
+  replacement: function (content, node) {
+    return '\n\n' + content + '\n\n';
+  }
+});
+
 function sanitizeFilename(title) {
   return title
     .toLowerCase()
@@ -237,7 +245,19 @@ function listPosts(wordpressXmlPath) {
   });
 }
 
-function downloadImage(url, dest) {
+const LOCAL_MEDIA_ROOT = '/Users/ericdodds/Library/CloudStorage/Dropbox/Eric Dodds/17 Digital Assets/02 Blog assets/WordPress content - Eric Dodds Blog/Jetpack Backup Jun 13 2025.tar/wp-content/uploads';
+
+function copyOrDownloadImage(url, dest) {
+  // Extract the path after /wp-content/uploads/
+  const match = url.match(/wp-content\/uploads\/(\d{4})\/(\d{2})\/([^?\s]+)(?:\?|$)/);
+  if (match) {
+    const localPath = path.join(LOCAL_MEDIA_ROOT, match[1], match[2], match[3]);
+    if (fs.existsSync(localPath)) {
+      fs.copyFileSync(localPath, dest);
+      return Promise.resolve();
+    }
+  }
+  // Fallback to download
   return new Promise((resolve, reject) => {
     const mod = url.startsWith('https') ? https : http;
     const file = fs.createWriteStream(dest);
@@ -331,7 +351,7 @@ async function migrateSinglePost(wordpressXmlPath, postIndex, outputDir) {
         if (!fs.existsSync(localImageFullPath)) {
           try {
             console.log(`Downloading image: ${url} -> ${localImageFullPath}`);
-            await downloadImage(url, localImageFullPath);
+            await copyOrDownloadImage(url, localImageFullPath);
           } catch (e) {
             console.error(`Failed to download image: ${url}`, e);
           }
