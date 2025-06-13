@@ -182,25 +182,18 @@ function processWordPressContent(content) {
   return processedContent;
 }
 
-function convertWordPressToMDX(wordpressXmlPath, outputDir) {
-  // Read WordPress export XML
+async function convertWordPressToMDX(wordpressXmlPath, outputDir) {
   const xmlContent = fs.readFileSync(wordpressXmlPath, 'utf-8');
-  
-  // Parse XML
-  xml2js.parseString(xmlContent, (err, result) => {
+  xml2js.parseString(xmlContent, async (err, result) => {
     if (err) {
       console.error('Error parsing XML:', err);
       return;
     }
-
     const posts = result.rss.channel[0].item || [];
     console.log(`Found ${posts.length} posts to convert`);
-
-    // Create output directory if it doesn't exist
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
     }
-
     for (const post of posts) {
       if (post['wp:status'] && post['wp:status'][0] !== 'publish') {
         continue;
@@ -208,20 +201,47 @@ function convertWordPressToMDX(wordpressXmlPath, outputDir) {
       if (!post['wp:post_type'] || post['wp:post_type'][0] !== 'post') {
         continue;
       }
-
       const title = post.title[0];
       let content = post['content:encoded'] ? post['content:encoded'][0] : '';
       const pubDate = post.pubDate ? post.pubDate[0] : new Date().toISOString();
       const categories = post.category ? post.category.map(cat => cat._) : [];
       const tags = post['wp:post_tag'] ? post['wp:post_tag'].map(tag => tag._) : [];
-
-      // Pre-process content for WordPress-specific elements
       content = processWordPressContent(content);
-
-      // Convert HTML content to Markdown
-      const markdownContent = turndownService.turndown(content);
-      
-      // Create frontmatter
+      let markdownContent = turndownService.turndown(content);
+      markdownContent = markdownContent.replace(/\\\[/g, '[').replace(/\\\]/g, ']');
+      markdownContent = markdownContent.replace(/(\[\^\d+\]:[^\n]*)(?=\s*\[\^\d+\]:)/g, '$1\n\n');
+      // Remove WordPress-style image links that wrap images
+      markdownContent = markdownContent.replace(/\[!\[([^\]]*)\]\(([^)]+)\)\]\([^)]+\)/g, '![$1]($2)');
+      // --- IMAGE HANDLING ---
+      const imageFolder = `public/images/blog/${sanitizeFilename(title)}`;
+      if (!fs.existsSync(imageFolder)) {
+        fs.mkdirSync(imageFolder, { recursive: true });
+      }
+      const imageRegex = /!\[(.*?)\]\((https?:\/\/[^)]+)\)/g;
+      let imageMatches = [...markdownContent.matchAll(imageRegex)];
+      for (const match of imageMatches) {
+        const alt = match[1] || '';
+        const url = match[2];
+        const urlParts = url.split('/');
+        const filenamePart = urlParts[urlParts.length - 1].split('?')[0];
+        const localImagePath = `/images/blog/${sanitizeFilename(title)}/${filenamePart}`;
+        const localImageFullPath = `${imageFolder}/${filenamePart}`;
+        if (!fs.existsSync(localImageFullPath)) {
+          try {
+            console.log(`Downloading image: ${url} -> ${localImageFullPath}`);
+            await downloadImage(url, localImageFullPath);
+          } catch (e) {
+            console.error(`Failed to download image: ${url}`, e);
+          }
+        }
+        const dimensions = getImageDimensions(localImageFullPath);
+        const imageTag = `<Image src=\"${localImagePath}\" alt=\"${alt.replace(/"/g, '&quot;')}\" width={${dimensions.width}} height={${dimensions.height}} />`;
+        const mdPattern = new RegExp(`!\\[${alt.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\]\\(${url.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\)`, 'g');
+        markdownContent = markdownContent.replace(mdPattern, imageTag);
+      }
+      // Replace YouTube URLs with <YouTube id=... />
+      markdownContent = markdownContent.replace(/https?:\/\/youtu\.be\/([\w-]{11})(\S*)/g, '<YouTube id="$1" />');
+      markdownContent = markdownContent.replace(/https?:\/\/www\.youtube\.com\/watch\?v=([\w-]{11})(?:[&?][^\s]*)*/g, '<YouTube id="$1" />');
       const frontmatter = {
         title: title,
         publishedAt: formatDate(pubDate),
@@ -229,26 +249,12 @@ function convertWordPressToMDX(wordpressXmlPath, outputDir) {
         categories: categories,
         tags: tags
       };
-
-      // Generate filename
       const filename = sanitizeFilename(title);
-      const mdxContent = `---
-title: '${title}'
-publishedAt: '${frontmatter.publishedAt}'
-summary: '${frontmatter.summary}'
-${categories.length > 0 ? `categories: [${categories.map(cat => `'${cat}'`).join(', ')}]` : ''}
-${tags.length > 0 ? `tags: [${tags.map(tag => `'${tag}'`).join(', ')}]` : ''}
----
-
-${markdownContent}
-`;
-
-      // Write MDX file
+      const mdxContent = `---\ntitle: '${title}'\npublishedAt: '${frontmatter.publishedAt}'\nsummary: '${frontmatter.summary}'\n${categories.length > 0 ? `categories: [${categories.map(cat => `'${cat}'`).join(', ')}]` : ''}\n${tags.length > 0 ? `tags: [${tags.map(tag => `'${tag}'`).join(', ')}]` : ''}\n---\n\n${markdownContent}\n`;
       const filePath = path.join(outputDir, `${filename}.mdx`);
       fs.writeFileSync(filePath, mdxContent);
       console.log(`Created: ${filename}.mdx`);
     }
-
     console.log(`\nMigration complete! ${posts.length} posts converted to MDX format.`);
     console.log(`Files saved to: ${outputDir}`);
   });
