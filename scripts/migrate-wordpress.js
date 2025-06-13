@@ -2,6 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const xml2js = require('xml2js');
 const TurndownService = require('turndown');
+const https = require('https');
+const http = require('http');
 
 // Configure turndown for HTML to Markdown conversion
 const turndownService = new TurndownService({
@@ -180,6 +182,39 @@ function processWordPressContent(content) {
   processedContent = processedContent.replace(/\[embed\](.*?)\[\/embed\]/g, '$1');
   
   return processedContent;
+}
+
+function downloadImage(url, dest) {
+  return new Promise((resolve, reject) => {
+    const mod = url.startsWith('https') ? https : http;
+    const file = fs.createWriteStream(dest);
+    mod.get(url, response => {
+      if (response.statusCode !== 200) {
+        reject(new Error(`Failed to get '${url}' (${response.statusCode})`));
+        return;
+      }
+      response.pipe(file);
+      file.on('finish', () => file.close(resolve));
+    }).on('error', err => {
+      fs.unlink(dest, () => reject(err));
+    });
+  });
+}
+
+function getImageDimensions(imagePath) {
+  try {
+    const filename = path.basename(imagePath);
+    if (filename.includes('1024x')) {
+      const match = filename.match(/(\d+)x(\d+)/);
+      if (match) {
+        return { width: parseInt(match[1]), height: parseInt(match[2]) };
+      }
+    }
+    return { width: 800, height: 600 };
+  } catch (error) {
+    console.warn(`Could not determine dimensions for ${imagePath}:`, error.message);
+    return { width: 800, height: 600 };
+  }
 }
 
 async function convertWordPressToMDX(wordpressXmlPath, outputDir) {
