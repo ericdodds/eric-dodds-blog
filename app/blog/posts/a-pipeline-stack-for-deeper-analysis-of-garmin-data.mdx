@@ -1,0 +1,402 @@
+---
+title: 'A pipeline stack for deeper analysis of Garmin data'
+publishedAt: '2023-02-28'
+summary: 'I work at a company that makes data pipelines and I like to tinker, so when I came across a deficiency in Garmin’s reporting, I decided to see if I could build a basic pipeline stack that would deliv...'
+categories: ['Uncategorized']
+
+---
+
+I work at a company that makes data pipelines and I like to tinker, so when I came across a deficiency in Garmin’s reporting, I decided to see if I could build a basic pipeline stack that would deliver the analysis I was looking for.
+
+I’ll admit from the outset that my solution is overkill for the problem—I could have easily used vLookups in a spreadsheet to get the answer. That wasn't the point, though. I had the itch to build something and wanted to try out some new RudderStack features and other data tools. ([RudderStack](https://www.rudderstack.com/) is the company where I work.)
+
+The result has been more helpful than I thought it would be and opens up many more possibilities for deeper analytics, so I wanted to write about the process both to document the project and for the off-chance that some other data-savvy Garmin users wanted to try to replicate it (and hopefully help iron out some of the bugs).
+
+This is the story of my little pipeline project and why I built it.
+
+## The missing Garmin report
+
+I'm an avid mountain biker and use a Garmin Edge device to track my rides.
+
+One very useful Garmin feature is the ability to add gear items to activities via their apps so that you can see gear usage over time. My guess is that the most common use is tracking mileage on running shoes or complete bikes, primarily because the only cumulative measure they provide for usage is mileage. (Strava is even more primitive for those wondering.)
+
+When it comes to mountain bikes, though, it's very helpful to track the number of *hours* you put on your suspension (in my case the shock and fork). Regular service can significantly lengthen the lifespan of suspension and service intervals are tracked in hours. Typically manufacturers recommend a full service every 125 hours or so.
+
+So, while I did add my fork and shock to to the gear list in Garmin after their most recent service, it wasn't very helpful because mileage is a poor proxy for hours in mountain biking. The terrain and average mileage per hour can vary significantly from ride to ride, especially if you ride different kinds of trails.
+
+Initially I tried to see if building this report was possible in Garmin's web app reporting interface, which has some customizability, but it wasn't possible.
+
+Next, I tried to export the tabular data from Garmin's Activity list interface (in their Garmin Connect web app), but the exports are limited summaries and don't include gear, which was necessary for the project, or other details like latitude and longitude.
+
+After a little research, I discovered that it's possible request a full data export from your Garmin account, which I did. When I opened the `.zip` file and discovered that they delivered the raw data as JSON in the form of events, I knew I had a fun little data project on my hands.
+
+## The pipeline stack overview
+
+At a high-level, this stack is fairly straight-forward, though the details of actually building it were much trickier than I initially thought they would be.
+
+Here's the data flow:
+
+-   Download raw Garmin data as JSON
+
+-   Convert JSON files to CSV and load into Google Sheets
+
+-   Use RudderStack's Cloud Extract ETL pipeline to load the Google Sheet data into BigQuery
+    -   Adjust data types as part of the extract job using RudderStack Transformations
+
+-   Join data in BigQuery and produce a metrics table
+
+-   Use RudderStack's Reverse ETL pipeline to convert the metrics table into events and send them to an event-based analytics tool (Mixpanel)
+
+-   Build the report in Mixpanel
+
+-   Just for fun:
+    -   Send the events to Amplitude as well to see which event analytics tool I like better for analysis
+    
+    -   Kick the tires Hex, a modern analytics platform that can run on top of BigQuery
+    
+    -   Send the events back into BigQuery just in case I wanted to use some of the enriched and formatted data to build additional reporting in Hex or another tool
+
+Here's a picture of the final set of pipelines in RudderStack:
+
+<Image src="/images/blog/a-pipeline-stack-for-deeper-analysis-of-garmin-data/rudderstack-garmin-data-project-json-events-mixpanel-amplitude-bigquery-reverse-etl-1024x465.png" alt="" width={1024} height={465} />
+
+I created two Mixpanel projects to make troubleshooting easier. When I make adjustments, I disable the prod destinations and send them to Mixpanel dev to test the downstream impact. *(Click the image to open a larger version in a new tab.)*
+
+## How I built the stack step-by-step
+
+### Downloading raw Garmin data and loading it to Google sheets
+
+Surprisingly, getting the Garmin data into Google Sheets was (and is) the most difficult and primitive part of the process. If I had the time, I'm sure I could find a tool or script to make it better, but just dealt with a messy process in order to complete the prototype. (If you're reading this and have any ideas for a better process, please reach out!)
+
+You can download your raw Garmin data from your Garmin account, which is different from Garmin Connect.
+
+Log-in at Garmin.com, hover over the profile icon at the top right and click "Account." Navigate to your profile page and click on the "MANAGE YOUR DATA" button at the bottom of the page. Depending on how much data you have, it can take some time to get the email notifying you the export is ready.
+
+Once you unzip the file, there are many folders to sort through. Garmin Activities live here:
+
+DI\_CONNECT --> DI\_Connect\_Fitness
+
+<Image src="/images/blog/a-pipeline-stack-for-deeper-analysis-of-garmin-data/garmin-raw-data-download-activity-data-gear-data-json-file-structure-1024x293.png" alt="" width={1024} height={293} />
+
+*Click the image to open a larger version in a new tab.*
+
+Activities (runs, rides, etc.) live in the `username_0_summarizedActivities.json` file and gear information lives in the `username_gear.json` file.
+
+I appended the download date to these files just to remind myself which dataset I was using.
+
+**Prepping the gear data**
+
+The gear file is small and includes a few objects:
+
+-   A gear index with the data you've added about each piece of gear (this lives in the `gearDTOS` JSON object)
+
+-   A mapping of activities to gear using `activity_id` and `gear_pk` (this lives in the `gearActivityDTOs` JSON object)
+
+I did two things with this data. First, I used an online converter to turn the gear index into a CSV, then loaded that into a tab in a Google Sheet. I thought having the option to include these details in the joins would be helpful when building analytics (and it was).
+
+<Image src="/images/blog/a-pipeline-stack-for-deeper-analysis-of-garmin-data/garmin-data-download-gearDTOS-gear-index-JSON-gear-list-1024x820.png" alt="" width={1024} height={820} />
+
+*Click the image to open a larger version in a new tab.*
+
+Second, I removed the object hierarch from the gear/activity mapping in order to have a clean, simple list of mapped IDs, which I converted to CSV and loaded into a separate tab in the Google Sheet.
+
+<Image src="/images/blog/a-pipeline-stack-for-deeper-analysis-of-garmin-data/garmin-data-export-gearActivityDTOs-gear-activity-mapping-activityId-gearPk.png" alt="" width={800} height={600} />
+
+*Click the image to open a larger version in a new tab.*
+
+**Prepping the activity data (the annoying part)**
+
+The activity file is large and from what I can tell, only includes your last 1,000 activities. Even for someone who records an activity every day, that's a few years of data, so plenty to work with.
+
+This is a simple file where each JSON object represents an activity. Different activities have different properties and levels of hierarchy.
+
+I ran into a few frustrating issues converting the activity JSON to CSV. A one-time conversion worked well, but I noticed when converting an updated file with new activities that the first activity in the list seemed to change the schema for all of the data, which meant that the new set of column names had either more or less data points than the previous set.
+
+It's not the end of the world to move a few columns around in a Google Sheet, but my intent was to actually use this analytics flow on an ongoing basis and pasting new CSV data into Google Sheets with the same schema every time is far more convenient and less error-prone for a process that is already very manual.
+
+I ended up cutting and pasting a `mountain_biking` activity as the first JSON object in the list and using the same CSV converter to produce a standardized schema every time. Even then, though, the schema doesn't seem to translate perfectly, so I still have to do a little column wrangling every time I import new activities.
+
+*If you have a good solution for this that isn't too complicated (I'm not a developer), I'd love to hear about it! I think flattening all of the JSON and alphabetizing the keys would be a great solution, I just haven't had the time to build a workflow to automate that part of the data cleanup.*
+
+Once I figured out the copy/paste hack, it was easy to import the CSV file into another tab of the Google Sheet.
+
+The final result is a set of three tabs in the Google Sheet that are ready to be pulled into BigQuery. I named them *activities*, *gear-index*, and *gear-activity-mapping*.
+
+<Image src="/images/blog/a-pipeline-stack-for-deeper-analysis-of-garmin-data/garmin-data-export-google-sheets-activities-gear-analytics-bigquery-etl-pipeline-1024x602.png" alt="" width={1024} height={602} />
+
+*Click the image to open a larger version in a new tab.*
+
+### Transforming data types and units and loading to BigQuery
+
+I chose Google Sheets as the initial data store because the data lives online and has version history, which makes troubleshooting much easier.
+
+I also knew that RudderStack's ETL pipeline (Cloud Extract) supported Google Sheets as a source, which I thought would be fun to use as part of the pipeline.
+
+Of course, you can also load Google Sheets directly into BigQuery, but the data itself presented a great opportunity for me to have some fun with RudderStack's Transformations feature, which let's you transform the data flowing through a pipeline by writing JavaScript or Python.
+
+One of the challenges with the data in the Google Sheet is that without formatting data types in the sheet itself, everything you import lands as a string. Strings are problematic because several data points need their data type changed into numbers, intervals, etc. so you can do math for the analysis.
+
+I initially thought about transforming all of the data using SQL in BigQuery, but I'm not great at SQL, wanted to keep the metrics query as simple as possible. And, of course, I wanted to tinker with RudderStack's Transformations.
+
+Also, because each tab on the Google Sheet is its own source for the Cloud Extract ETL job, Transformations is a slick way to use the RudderStack `sourceId` to rename the tables within datasets to something more human-readable as they are created in BigQuery (the default table name for every sheet is `row`).
+
+Almost all of the data transformations were straight forward, requiring either a simple data type conversion or a data type and unit conversion.
+
+I did use a stored function for date time conversion that I called in my full Transformation function to make the code cleaner, but those data points did end up requiring some more work in the warehouse to get the format and formatting correct. I'm sure there's a way to fix this in the Transformation code, but I'm not great at JavaScript either and a SQL mastermind works in the office next to mine.
+
+Below is a sample of the stored function for date time (which is saved in RudderStack Transformations Libraries). You can also see the code [on Github](https://github.com/ericdodds/garmin-data-project/blob/main/rudderstack-library-UNIX-timestamp-to-datetime-transformation.js).
+
+```javascript
+export function convertTimestamp(timestamp) {
+
+    var d = new Date(timestamp),
+
+        yyyy = d.getFullYear(),
+
+        mm = ('0' + (d.getMonth() + 1)).slice(-2),  // Months are zero based. Add leading 0.
+
+        dd = ('0' + d.getDate()).slice(-2),         // Add leading 0.
+
+        hh = d.getHours(),
+
+        h = hh,
+
+        min = ('0' + d.getMinutes()).slice(-2),     // Add leading 0.
+
+        ampm = 'AM',
+
+        time;
+```
+
+And here's a sample of the full JavaScript transformation with comments that explain what the code is doing (code [on Github here](https://github.com/ericdodds/garmin-data-project/blob/main/rudderstack-transformation-data-type-and-unit-transformation.js)):
+
+```javascript
+import { convertTimestamp } from "unixTimestampToDatetime"
+
+```
+
+Now, when the RudderStack Cloud Extract pipeline runs, the Google Sheet data is loaded into BigQuery into a separate dataset for each tab in the sheet.
+
+<Image src="/images/blog/a-pipeline-stack-for-deeper-analysis-of-garmin-data/rudderstack-cloud-extract-etl-google-sheets-bigquery-garmin-activity-data-garmin-gear-data-1024x583.png" alt="" width={1024} height={583} />
+
+*Click the image to open a larger version in a new tab.*
+
+The activities dataset includes the new `converted_` columns with updated data types as a result of the Transformation. In the Transformation I chose to create new columns prepended with `converted_` to maintain the option of converting the original columns with SQL in the future.
+
+<Image src="/images/blog/a-pipeline-stack-for-deeper-analysis-of-garmin-data/bigquery-garmin-activity-data-garmin-gear-data-analytics-raw-data-json-sql-1024x572.png" alt="" width={1024} height={572} />
+
+*Click the image to open a larger version in a new tab.*
+
+*Important note for anyone following this as a tutorial and building this stack yourself: RudderStack's Cloud Extract pipeline is a paid feature, so you'll need to either change the data type in Google Sheets and load the sheet directly or load the data as string values and write SQL to make the necessary transformations.*
+
+## Building the metrics table in BigQuery with SQL
+
+Once I stopped floundering around in bad SQL and walked next door to talk to my friend Benji, a SQL genius, the initial metrics table came together in a few minutes.
+
+The joins are pretty straight forward: you can join the gear\_index and gear\_activity\_mapping tables on the `gear_pk` column, then join the activities table to the gear\_activity\_mapping table on `activity_id`.
+
+As I said above we did have to wrangle the date time format a bit, but the trickiest part ended up being something we discovered after running the reverse ETL pipeline and looking at the synthetic events it generates from each row.
+
+If you've added multiple pieces of gear to Garmin, they can all be associated with a single activity. In my case, I'm tracking three pieces of gear: my bike, my fork and my shock. When I record a mountain bike activity, all three gear data points are associated with that single activity. Because each activity is a single row, you end up with a list of gear in the relevant gear columns.
+
+Benji and I thought through a few ways to potentially model the data differently to avoid using an array, but after discussing extensibility, retired gear, etc., and discovering that Mixpanel (the analytics tool I was going to use) works well with lists, we stuck with the array.
+
+When we tested pulling the data back out of BigQuery to send it to Mixpanel, we noticed that the initial format of the array didn't play nicely with RudderStack's event schema, so we had to do some additional formatting in our SQL query.
+
+Other than the array hack, this is a pretty straight-forward SQL query. I've included a sample with converted column names below (you can see all of the code [on Github here](https://github.com/ericdodds/garmin-data-project/blob/main/bigquery-metrics-view-garmin-activity-and-gear-data.sql)).
+
+```sql
+  FROM `garmin_gear_activity_mapping.gear_by_activity` m 
+
+    LEFT OUTER JOIN `garmin_gear_index.gear` g on m.gear_pk = g.gear_pk  
+
+  GROUP BY activity_id
+
+),
+
+```
+
+## Pushing the metrics table to Mixpanel (and other tools) as events for analytics
+
+When I originally discovered that the raw Garmin data was exported as JSON events, I knew it would be fun to analyze the data in an event-based analytics tool.
+
+Sure, I could have simply plugged the metrics table into Looker Studio for visualization, but that would have required far more SQL and/or wrangling in Looker Studio.
+
+Event-based product analytics tools like Mixpanel and Amplitude are purpose-built for event analytics. As a daily user of Mixpanel in my work, I was also excited by the idea of analyzing my mountain biking activity data in a familiar analytics platform.
+
+One of the obvious problems was that even though the initial data was JSON event data, I'd turned it into tabular data in the form of a table in BigQuery.
+
+Luckily, there was another RudderStack feature I wanted to kick the tires on: reverse ETL. The reverse ETL pipeline turns table rows into JSON payloads, then sends them to various integrations that are available through RudderStack, including product analytics tools.
+
+### Using reverse ETL to translate table rows into events
+
+Setting up the initial reverse ETL pipeline was really simple. I connected a RudderStack reverse ETL source to my metrics table in BigQuery and the data started flowing.
+
+One detail to note here is that when RudderStack's reverse ETL pipeline translates rows to events, it requires you to set unique keys for 1) deduping events and 2) to
+
+<Image src="/images/blog/a-pipeline-stack-for-deeper-analysis-of-garmin-data/rudderstack-reverse-etl-webhook-destination-1024x485.png" alt="" width={1024} height={485} />
+
+*Click the image to open a larger version in a new tab.*
+
+### Sending data to multiple destinations with a webhook loop
+
+Reverse ETL pipelines in RudderStack run 1-1, meaning each database source can only send data to one destination integration.
+
+In my case, I could have connected a BigQuery source to Mixpanel as a destination and called it a day, but I wanted to send the data to additional analytics tools like Amplitude to try them out. I also wanted to send the final, formatted events back into BigQuery to see if the standardized event schema made certain reporting easier to build in visualization tools (another project for another day).
+
+Instead of setting up additional reverse ETL pipelines, which would require an additional set of dedicated sync jobs, I created a "webhook loop" in RudderStack. Here's how it works:
+
+-   Set up a webhook source
+
+-   Set up a webhook destination
+
+-   Send the BigQuery reverse ETL source to the webhook destination
+
+-   Configure that webhook destination to forward the payload to the webhook source
+
+-   Connect multiple final destinations to the webhook source (i.e., Mixpanel, Amplitude, etc.)
+
+<Image src="/images/blog/a-pipeline-stack-for-deeper-analysis-of-garmin-data/rudderstack-webhook-loop-webhook-source-webhook-destination-reverse-etl-events-track-calls-mixpanel-amplitude-1024x998.png" alt="" width={1024} height={998} />
+
+*Click the image to open a larger version in a new tab.*
+
+**Formatting the final payload from the webhook source**
+
+One small but understandable annoyance about creating a webhook loop is that RudderStack webhook sources apply a standard format to all incoming payloads. This makes total sense because the primary use case is ingesting data from any source and providing users with a standard format they can then manipulate according to their specific needs.
+
+In my case, it creates a little more work because an already-formatted event needs to be re-formatted to undo some of the payload standardization applied by webhook source. (I've actually talked with our product team about making this easier based on my experience.)
+
+Adding additional formatting ended up working out well in my specific case because of the gear array I mentioned earlier. I discovered that the array needed some additional formatting in order to conform to Mixpanel's spec.
+
+RudderStack's Transformations make this easy work. For those keeping score, here are the key updates that need to be made to shape a webhook source event for downstream event-based integrations:
+
+-   *Delete the `messageId`* - RudderStack applies a unique `messageId` to each event flowing through the pipeline to handle deduplication and other processing functions. Some downstream tools like Mixpanel interpret the `messageId` as a unique identifier, meaning that you can create duplicate events across syncs.
+
+-   *Set the correct name for the event* - The default event name for events coming from a webhook source is…`webhook_source_event`, so you have to replace it with the correct event name.
+
+-   *Update the timestamps generated by the webhook* - The webhook source generates new timestamps for the event, which can produce incorrect data in downstream destinations.
+
+-   *Nest the properties object correctly* - the incoming payload adds additional hierarchy, so you have to re-position the properties object so that it is correctly nested.
+
+-   *Apply a standard `anonymousId`* - RudderStack automatically applies a unique *user* identifier to each event (the `anonymousId`), even if it is flowing through a webhook source. Similar to the `messageId`, if you don't standardize this value for each unique user, you can inadvertently duplicate events because the webhook source will cut new `anonymousId` values if you don't explicitly set them. I used my email address to keep things simple.
+
+-   *Create a `traits` object and place the `userId` value within that object* - In order to associate events with a specific user in analytics tools like Mixpanel, you need to add a `traits` object with a unique identifier. (Note that in order to create the actual user, you'd need to send an `identify` call with user information to Mixpanel, which would be easy with an additional reverse ETL pipeline job. For a single user in this use case, it isn't necessary.)
+
+For my singular use case, the `anonymousId` and `userId` values could be arbitrary, but as I thought about assigning events to users, I realized that it could be fun in the future to run the same data flow for my son (who just started mountain biking) and compare our stats in the same analytics tool.
+
+Below is a sample of the Transformation code I used to format the final payload (code [on Github here](https://github.com/ericdodds/garmin-data-project/blob/main/location-enrich-and-shape-final-payload-for-analytics-destinations.js)):
+
+```javascript
+export async function transformEvent(event, metadata) {
+    
+     if (event.event == 'webhook_source_event' ) 
+
+        {
+                
+                // Delete messageId to prevent event duplication 
+
+                delete event["messageId"];
+                
+                // Set anonymousId to prevent creation of additional users 
+
+                event.anonymousId = event.properties.userId;
+         
+```
+
+## Producing the missing report
+
+Once the data was in Mixpanel and Amplitude, building the reports showing gear usage by hour was incredibly simple. It was so simple, in fact, that seeing the data was somewhat anticlimactic, though in retrospect I should have expected an underwhelming outcome after throwing such an involved, multi-step data pipeline solution at a problem I could have solved in a spreadsheet.
+
+<Image src="/images/blog/a-pipeline-stack-for-deeper-analysis-of-garmin-data/mixpanel-garmin-data-activity-gear-cumulative-hours-1024x470.png" alt="" width={1024} height={470} />
+
+Here's the missing report in Mixpanel.
+
+*Click the image to open a larger version in a new tab.*
+
+The exciting part was building additional reports and thinking about all of the neat analytics I could run on the data in the future. Here are a few additional reports I tinkered with:
+
+<Image src="/images/blog/a-pipeline-stack-for-deeper-analysis-of-garmin-data/mixpanel-garmin-data-mountain-biking-activities-gear-analysis-1024x863.png" alt="" width={1024} height={863} />
+
+*Click the image to open a larger version in a new tab.*
+
+The data is also in Amplitude, which I've enjoyed learning. The ergonomics are different than Mixpanel, but I like their approach on forcing certain constraints in report building.
+
+Amplitude also provides nice functionality around public links to dashboards. This is a quick proof of concept I put together: [public Amplitude mountain biking dashboard](https://analytics.amplitude.com/share/2f2c0a97aa0645c3bb5b106f5daf7ee3).
+
+And here's a screenshot:
+
+<Image src="/images/blog/a-pipeline-stack-for-deeper-analysis-of-garmin-data/amplitude-public-dashboard-mountain-biking-project-1024x764.png" alt="" width={1024} height={764} />
+
+*Click the image to open a larger version in a new tab.*
+
+## Bonus: playing with Hex and enriching location via API
+
+**Mapping location with Hex**
+
+Hex is an analytics and data science platform and I've had the good privilege of connecting with several people who work there (their CEO Barry is one of the most dynamic CEOs I've met).
+
+I'd been itching to test their tool out with a real use case, so in about 5 minutes I connect Hex to my metrics table, wrote a simple query and produced an incredible map of my rides using the `startingLattitude` and `startingLongitude` values from the table.
+
+If I can get a bit more time with Benji, I plan to do even more with Hex. In fact, I really wish I had used Hex to model the metrics table instead of BitQuery's native SQL editor—the experience is worlds better and the cell-based approach would have made things much easier.
+
+**Enriching location via API in a Transformation**
+
+Looking at the events in Mixpanel, one additional characteristic I noticed about the data was that Garmin didn't provide a good human-readable location. The only understandable location beyond latitude and longitude was in the automatically generated title of the activity, which often uses a broad geographic definition like county (i.e., "Transylvania County Mountain Biking").
+
+Hex's reporting made this a moot point with their mapping feature, but I did think it would be nice to break data down by human-readable location data points at various levels of granularity.
+
+I ended up using RudderStack's Transformations feature to send the `startingLatitude` and `startingLongitude` values to an API ([Positionstack](https://positionstack.com/)), which can do reverse-geolocation lookups and return human-readable geo data that I could use to group activities by in Mixpanel and Amplitude. Here's the code snippet for enrichment (which you can see as part of the final payload transformation - [code on Github here](https://github.com/ericdodds/garmin-data-project/blob/main/location-enrich-and-shape-final-payload-for-analytics-destinations.js)).
+
+```javascript
+  if (event.properties.latLong) {
+
+                    const addy= await fetch("http://api.positionstack.com/v1/reverse?access_key=1234567890&limit=1&query="+event.properties.latLong);
+                    
+                    event.properties.address = addy.data[0].label;
+
+                    event.properties.continent = addy.data[0].continent;
+
+                    event.properties.country = addy.data[0].country;
+
+                    event.properties.city = addy.data[0].locality;
+
+                    event.properties.state = addy.data[0].region;
+                
+                }
+```
+
+And here's a quick chart I built that show's a breakdown of rides by country and state, which uses the human-readable values returned by the Positionstack API.
+
+<Image src="/images/blog/a-pipeline-stack-for-deeper-analysis-of-garmin-data/amplitude-chart-mountain-bike-rides-by-location-1024x228.png" alt="" width={1024} height={228} />
+
+*Click the image to open a larger version in a new tab.*
+
+## What I learned
+
+My initial goal for this project was to satisfy my desire to tinker and, in the process, build a report that would make it easier to know when to service my mountain bike suspension.
+
+As is often the case with endeavors like this, I learned more than I expected at the outset. Here are a few takeaways.
+
+**I have far more appreciation for the engineers at Garmin**
+
+When I'm using a consumer app like the Garmin app, I don't often think about the difficult challenges and decisions that the engineers supporting the app face (outages or updates are usually the reminder).
+
+Working with raw Garmin data and even studying the way they have structured their JSON gave me a huge amount of appreciation for what seems like very well-thought-out and scalable data infrastructure, even down to the units they use. Translating centimeter-based units to feet was annoying, but thinking about a data team supporting an international audience reminded me that their choices were intentional and gives them the flexibility to support a huge variety of user needs downstream.
+
+**This was a visceral reminder that working with data is hard**
+
+I'm not an engineer, but I do work with data every day in my job and I'm no stranger to operating and troubleshooting pipelines and running (poorly written) queries on a data warehouse to try and answer questions. I'm even on the internal team who helps manage our own data stack.
+
+Taking raw JSON from Garmin and running it through a stack to produce a simple report was far more involved than I had initially bargained for. Even if I hadn't gone through the extra steps of using an ETL pipeline and creating a webhook loop, there was a reasonable level of data architecture design and decision making for such a small project. Even still, there's more work to do to automate the primitive JSON --> Google Sheets flow, which is manual and error-prone in its current state.
+
+If anything, this project gave me a huge amount of appreciation for people who face these kinds of data challenges every day—what initially seems simple rarely is.
+
+**Curiosity is the best path to intellectual stimulation**
+
+Building this project was really *fun*, in large part because it worked some new muscles in my brain and forced me to think through new problems, which was energizing.
+
+**Completing a project is cathartic and energizing**
+
+Many parts of my life are defined by work towards long-term outcomes that require constant effort. Having a great marriage, raising responsible children, building a career, staying healthy—the journey itself is fulfilling and there are constant highlights when you look for them, but many days I feel the weight of a road stretching out far past the horizon I can see.
+
+Building a small project, end-to-end, especially when it had some level of practical utility, was both cathartic because of the feeling of completeness and energizing because seeing myself solve new problems on a small scale gave me energy to keep pushing down the long road.

@@ -163,3 +163,7 @@ table {
 .prose .footnotes a.data-footnote-backref {
   @apply no-underline;
 }
+
+.blog-content div.cursor-pointer + div.cursor-pointer {
+  margin-top: 1.5rem;
+}

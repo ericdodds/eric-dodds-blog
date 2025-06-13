@@ -1,0 +1,43 @@
+---
+title: 'Gather and move nested audio files via command line'
+publishedAt: '2013-08-22'
+summary: 'Over the years my brother has amassed a large music library of 20,000+ songs. He has a great taste for sound, but when it comes to technology his nerd DNA is dwarfed by his outdoorsman DNA. After seve...'
+categories: ['Nerdery']
+
+---
+
+Over the years my brother has amassed a large music library of 20,000+ songs. He has a great taste for sound, but when it comes to technology his nerd DNA is dwarfed by his [outdoorsman DNA](https://www.flickr.com/photos/ericdodds/14004205847/in/set-72157644670483792). After several computer upgrades, multiple iTunes Library restorations and transfers, and no file file management whatsoever, a significant portion of his audio files were corrupt and wouldn’t play (via iTunes or in the Finder on his Mac). Music is a very important part of his life, so I set out to help him.
+
+After tinkering for a bit I discovered that running bad files through an mp3 converter fixed the problem—the content was intact, but iTunes was having trouble reading them fully[^1].
+
+Having discovered the fix for individual files, I faced another problem: those items were spread across a directory with thousands of nested folders, some several levels deep in the hierarchy. There was no way I was going to manually move 20,000 files.
+
+<Image src="/images/blog/gather-and-move-nested-audio-files-via-command-line/nested-audio-files-1.png" alt="nested-audio-files-1" width={800} height={600} />
+
+My first crack at automating the process was finding an mp3 conversion tool that would search through folders, find files, and convert them in place. [Switch](http://www.nch.com.au/switch/index.html) seemed like it would do the job initially, but after several failed attempts I figured that some combination of names in the file path was breaking the process. I tried a few more programs unsuccessfully before remembering that I had no need to preserve the existing order as iTunes automatically generates an artist/album/song folder structure when you import new files.
+
+After that, I turned to the terminal to see if I could efficiently gather all of the files into a single clean directory. (Scared of the terminal? Don’t be[^2].)
+
+Exploring regex commands[^3] seemed promising until I realized that I needed to move multiple file types[^4]. Frustration drove me to enlist my business partner (and hacker extraordinaire) [Mason Stewart’s](http://twitter.com/masondesu) help.
+
+We discovered that using a unix find command, file name specification, and move command for each individual file type worked like a charm.
+
+[https://gist.github.com/ericdodds/6306638.js](https://gist.github.com/ericdodds/6306638.js)
+
+The result: all of the audio files in a single folder, easily digestible by the mp3 converter.
+
+<Image src="/images/blog/gather-and-move-nested-audio-files-via-command-line/nested-audio-files-2.png" alt="nested-audio-files-2" width={800} height={600} />
+
+[^1]: More specifically, iTunes recognized the presence of a corrupt file in the library, but couldn’t actually play it and would skip to the next song.
+
+
+
+[^2]: Even if you’re not nerdy by nature, knowing a few basic unix commands is super powerful. For example, find the Terminal (or command line app) on your computer and type “whois ericdodds.com”.
+
+
+
+[^3]: Mason showed me [this amazing regex playground](http://leaverou.github.io/regexplained/) by [Lea Verou](http://lea.verou.me/). I still understand very little about regex, but the taste I had showed me that it’s an incredibly powerful tool
+
+
+
+[^4]: “Some people, when confronted with a problem, think ‘I know, I’ll use regular expressions.’ Now they have two problems." —Jamie Zawinski

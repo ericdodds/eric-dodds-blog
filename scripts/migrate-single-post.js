@@ -4,6 +4,7 @@ const xml2js = require('xml2js');
 const TurndownService = require('turndown');
 const https = require('https');
 const http = require('http');
+const { execSync } = require('child_process');
 
 // Configure turndown for HTML to Markdown conversion
 const turndownService = new TurndownService({
@@ -245,33 +246,92 @@ function listPosts(wordpressXmlPath) {
   });
 }
 
-const LOCAL_MEDIA_ROOT = '/Users/ericdodds/Library/CloudStorage/Dropbox/Eric Dodds/17 Digital Assets/02 Blog assets/WordPress content - Eric Dodds Blog/Jetpack Backup Jun 13 2025.tar/wp-content/uploads';
+const LOCAL_MEDIA_ROOT = '/Users/ericdodds/Library/CloudStorage/Dropbox/Eric Dodds/17 Digital Assets/02 Blog assets/WordPress content - Eric Dodds Blog/Jetpack_Backup_Jun_13_2025/wp-content/uploads';
 
-function copyOrDownloadImage(url, dest) {
-  // Extract the path after /wp-content/uploads/
-  const match = url.match(/wp-content\/uploads\/(\d{4})\/(\d{2})\/([^?\s]+)(?:\?|$)/);
-  if (match) {
-    const localPath = path.join(LOCAL_MEDIA_ROOT, match[1], match[2], match[3]);
-    if (fs.existsSync(localPath)) {
-      fs.copyFileSync(localPath, dest);
-      return Promise.resolve();
+const MEDIA_XML_PATH = '/Users/ericdodds/Library/CloudStorage/Dropbox/Eric Dodds/17 Digital Assets/02 Blog assets/WordPress content - Eric Dodds Blog/Eric_Dodds_WordPress_media_June_13_2025.xml';
+let mediaMap = {};
+function buildMediaMap() {
+  const xmlContent = fs.readFileSync(MEDIA_XML_PATH, 'utf-8');
+  xml2js.parseString(xmlContent, (err, result) => {
+    if (err) {
+      console.error('Error parsing media XML:', err);
+      return;
     }
-  }
-  // Fallback to download
-  return new Promise((resolve, reject) => {
-    const mod = url.startsWith('https') ? https : http;
-    const file = fs.createWriteStream(dest);
-    mod.get(url, response => {
-      if (response.statusCode !== 200) {
-        reject(new Error(`Failed to get '${url}' (${response.statusCode})`));
-        return;
+    const items = result.rss.channel[0].item || [];
+    items.forEach(item => {
+      const guid = item.guid && item.guid[0] ? item.guid[0]._ || item.guid[0] : null;
+      const attachmentUrl = item['wp:attachment_url'] ? item['wp:attachment_url'][0] : null;
+      let filePath = null;
+      if (item['wp:attachment_url'] && item['wp:attachment_url'][0]) {
+        const url = item['wp:attachment_url'][0];
+        const match = url.match(/wp-content\/uploads\/(\d{4})\/(\d{2})\/([^?\s]+)(?:\?|$)/);
+        if (match) {
+          filePath = path.join(LOCAL_MEDIA_ROOT, match[1], match[2], match[3]);
+        }
       }
-      response.pipe(file);
-      file.on('finish', () => file.close(resolve));
-    }).on('error', err => {
-      fs.unlink(dest, () => reject(err));
+      if (guid && filePath) mediaMap[guid] = filePath;
+      if (attachmentUrl && filePath) mediaMap[attachmentUrl] = filePath;
     });
   });
+}
+buildMediaMap();
+
+function findFileByFilename(filename, rootDir) {
+  try {
+    const result = execSync(`find "${rootDir}" -type f -name "${filename}"`, { encoding: 'utf-8' });
+    const files = result.split('\n').filter(Boolean);
+    return files.length > 0 ? files[0] : null;
+  } catch {
+    return null;
+  }
+}
+
+function downloadImageWithRedirects(url, dest, maxRedirects = 5) {
+  return new Promise((resolve, reject) => {
+    function request(u) {
+      const isHttps = u.startsWith('https');
+      const mod = isHttps ? require('https') : require('http');
+      mod.get(u, response => {
+        if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location && maxRedirects > 0) {
+          request(response.headers.location.startsWith('http') ? response.headers.location : new URL(response.headers.location, u).toString());
+        } else if (response.statusCode === 200) {
+          const file = fs.createWriteStream(dest);
+          response.pipe(file);
+          file.on('finish', () => file.close(resolve));
+        } else {
+          reject(new Error(`Failed to get '${u}' (${response.statusCode})`));
+        }
+      }).on('error', err => {
+        fs.unlink(dest, () => reject(err));
+      });
+    }
+    request(url);
+  });
+}
+
+async function hybridCopyOrDownloadImage(url, dest) {
+  // 1. Try media map (exact match)
+  const found = Object.keys(mediaMap).find(key => url.includes(key));
+  if (found && fs.existsSync(mediaMap[found])) {
+    fs.copyFileSync(mediaMap[found], dest);
+    return;
+  }
+  // 2. Try filename match anywhere in backup
+  const filename = url.split('/').pop().split('?')[0];
+  const localFile = findFileByFilename(filename, LOCAL_MEDIA_ROOT);
+  if (localFile && fs.existsSync(localFile)) {
+    fs.copyFileSync(localFile, dest);
+    return;
+  }
+  // 3. Download from URL (with redirect support)
+  try {
+    await downloadImageWithRedirects(url, dest);
+    return;
+  } catch (e) {
+    console.warn(`Failed to download image (even with redirects): ${url}`);
+  }
+  // 4. Log as missing
+  console.warn(`Image missing: ${url}`);
 }
 
 // Simple function to get image dimensions (you may need to install 'image-size' package for better results)
@@ -327,39 +387,68 @@ async function migrateSinglePost(wordpressXmlPath, postIndex, outputDir) {
       const hasImages = content.includes('<img') || content.includes('src=');
       console.log(`Contains footnotes: ${hasFootnotes ? 'Yes' : 'No'}`);
       console.log(`Contains images: ${hasImages ? 'Yes' : 'No'}`);
-      content = processWordPressContent(content);
-      let markdownContent = turndownService.turndown(content);
+      // --- PROCESS FOOTNOTES AND SHORTCODES FIRST ---
+      let processedContent = processWordPressContent(content);
+      // --- PRE-PROCESS: Wrap paragraphs in <p> tags ---
+      let htmlContent = processedContent.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+      htmlContent = htmlContent.split(/\n{2,}/).map(p => `<p>${p.trim()}</p>`).join('\n');
+      let markdownContent = turndownService.turndown(htmlContent);
       markdownContent = markdownContent.replace(/\\\[/g, '[').replace(/\\\]/g, ']');
       markdownContent = markdownContent.replace(/(\[\^\d+\]:[^\n]*)(?=\s*\[\^\d+\]:)/g, '$1\n\n');
       // Remove WordPress-style image links that wrap images
-      // This converts [![alt](url)](link) to ![alt](url)
       markdownContent = markdownContent.replace(/\[!\[([^\]]*)\]\(([^)]+)\)\]\([^)]+\)/g, '![$1]($2)');
+      // --- POST-PROCESS: Ensure blank lines between paragraphs ---
+      markdownContent = markdownContent.split('\n').reduce((acc, line, idx, arr) => {
+        acc.push(line);
+        const nextLine = arr[idx + 1] || '';
+        if (
+          line.trim() !== '' &&
+          !line.startsWith('#') &&
+          !line.startsWith('>') &&
+          !line.startsWith('- ') &&
+          !line.startsWith('* ') &&
+          !line.startsWith('1.') &&
+          !line.startsWith('```') &&
+          nextLine.trim() !== '' &&
+          !nextLine.startsWith('#') &&
+          !nextLine.startsWith('>') &&
+          !nextLine.startsWith('- ') &&
+          !nextLine.startsWith('* ') &&
+          !nextLine.startsWith('1.') &&
+          !nextLine.startsWith('```')
+        ) {
+          acc.push('');
+        }
+        return acc;
+      }, []).join('\n');
       // --- IMAGE HANDLING ---
       const imageFolder = `public/images/blog/${sanitizeFilename(title)}`;
-      if (!fs.existsSync(imageFolder)) {
-        fs.mkdirSync(imageFolder, { recursive: true });
-      }
       const imageRegex = /!\[(.*?)\]\((https?:\/\/[^)]+)\)/g;
       let imageMatches = [...markdownContent.matchAll(imageRegex)];
-      for (const match of imageMatches) {
-        const alt = match[1] || '';
-        const url = match[2];
-        const urlParts = url.split('/');
-        const filenamePart = urlParts[urlParts.length - 1].split('?')[0];
-        const localImagePath = `/images/blog/${sanitizeFilename(title)}/${filenamePart}`;
-        const localImageFullPath = `${imageFolder}/${filenamePart}`;
-        if (!fs.existsSync(localImageFullPath)) {
-          try {
-            console.log(`Downloading image: ${url} -> ${localImageFullPath}`);
-            await copyOrDownloadImage(url, localImageFullPath);
-          } catch (e) {
-            console.error(`Failed to download image: ${url}`, e);
-          }
+      if (imageMatches.length > 0) {
+        if (!fs.existsSync(imageFolder)) {
+          fs.mkdirSync(imageFolder, { recursive: true });
         }
-        const dimensions = getImageDimensions(localImageFullPath);
-        const imageTag = `<Image src=\"${localImagePath}\" alt=\"${alt.replace(/"/g, '&quot;')}\" width={${dimensions.width}} height={${dimensions.height}} />`;
-        const mdPattern = new RegExp(`!\\[${alt.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\]\\(${url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\)`, 'g');
-        markdownContent = markdownContent.replace(mdPattern, imageTag);
+        for (const match of imageMatches) {
+          const alt = match[1] || '';
+          const url = match[2];
+          const urlParts = url.split('/');
+          const filenamePart = urlParts[urlParts.length - 1].split('?')[0];
+          const localImagePath = `/images/blog/${sanitizeFilename(title)}/${filenamePart}`;
+          const localImageFullPath = `${imageFolder}/${filenamePart}`;
+          if (!fs.existsSync(localImageFullPath)) {
+            try {
+              console.log(`Downloading image: ${url} -> ${localImageFullPath}`);
+              await hybridCopyOrDownloadImage(url, localImageFullPath);
+            } catch (e) {
+              console.error(`Failed to download image: ${url}`, e);
+            }
+          }
+          const dimensions = getImageDimensions(localImageFullPath);
+          const imageTag = `<Image src=\"${localImagePath}\" alt=\"${alt.replace(/"/g, '&quot;')}\" width={${dimensions.width}} height={${dimensions.height}} />`;
+          const mdPattern = new RegExp(`!\\[${alt.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\]\\(${url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\)`, 'g');
+          markdownContent = markdownContent.replace(mdPattern, imageTag);
+        }
       }
       // Replace YouTube URLs with <YouTube id="..." />
       markdownContent = markdownContent.replace(/https?:\/\/youtu\.be\/([\w-]{11})(\S*)/g, '<YouTube id="$1" />');

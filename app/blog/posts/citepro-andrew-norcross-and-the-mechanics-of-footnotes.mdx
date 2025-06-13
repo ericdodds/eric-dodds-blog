@@ -1,0 +1,105 @@
+---
+title: 'Citepro, Andrew Norcross and the Mechanics of Footnotes'
+publishedAt: '2014-07-30'
+summary: 'Some time ago I wrote about why I use footnotes, not in-text links on this blog[^1]. Technically, footnotes can be tricky. 
+
+Alert: I'm about to get a little nerdy. If you just want to know how to use...'
+categories: ['Nerdery']
+
+---
+
+Some time ago I wrote about why I use footnotes, not in-text links on this blog[^1]. Technically, footnotes can be tricky.
+
+Alert: I'm about to get a little nerdy. If you just want to know how to use the amazing Citation Pro footnotes plugin, [jump ahead](#citepro).
+
+You can create footnotes using vanilla HTML, but crafting them by hand is laborious and detailed:
+
+[https://gist.github.com/ericdodds/c638b56fc82a486197de.js](https://gist.github.com/ericdodds/c638b56fc82a486197de.js)
+
+Publishing platforms that support Markdown[^2] make things a bit easier with references, but even then the behavior isn't consistent and the implementation process is still manual as far as numbered lists.
+
+For better or worse, I use WordPress, which has the benefit of a robust community of plugin developers. As you might expect, some of them have tackled the problem of footnotes. The best of the lot that I'd found was John Watson's FD Footnotes[^3]
+
+His format is simple and made a lot of sense. Brackets with numbers created footnotes in both the Visual and Text editors in WordPress. It looks like this:
+
+[1. This is text in a footnote.]
+
+One of the shining features of that plugin was a toggle that hid the reference content of the footnotes on truncated posts (like many posts on my homepage feed). Unfortunately, FD Footnotes was still a bit frustrating to use because the numbering system is broken, requiring me to manually order the content like this:
+
+[1. 1. This is text in a footnote.]
+
+It was still the best of the plugins available so I used it and dealt with the annoyance...that is until I met WordPress guru Andrew Norcross[^4]. He spoke at the Front End Design conference and we had a chance to get acquainted.
+
+After I returned home I thought I'd reach out to Andrew on a whim and share my frustrations about footnotes plugins to see if there was some sort of easy fix. Turns out the guy had old code sitting around that was 90% of the way to a perfect solution.
+
+One new repo, 32 emails and several commits later, Citation Pro was everything I'd been looking for in a solution for awesome footnotes in WordPress.
+
+[]()
+
+**Citation Pro features and usage**
+
+Citation Pro uses a simple shortcode system to generate footnotes. Here's what they look like in the body text:
+
+[https://gist.github.com/ericdodds/3115ec53c62fa0159d05.js](https://gist.github.com/ericdodds/3115ec53c62fa0159d05.js)
+
+Those tags will automatically generate a numbered list at the end of the blog post. You'll see a live example when you get to the bottom of this article. It's worth noting that those short tags work when editing in both the Visual editor and Text editor in WordPress, meaning you don't have to change implementation when switching between the two.
+
+One really nice interface feature Andrew included was a button in the editor's toolbar, making it easy for anyone to use the plugin.
+
+<Image src="/images/blog/citepro-andrew-norcross-and-the-mechanics-of-footnotes/04266-citepro-wordpress-plugin-footnotes-editor-button-1.png" alt="citepro-wordpress-plugin-footnotes-editor-button-1" width={800} height={600} />
+
+<Image src="/images/blog/citepro-andrew-norcross-and-the-mechanics-of-footnotes/6f8b7-citepro-wordpress-plugin-footnotes-editor-button-2.png" alt="citepro-wordpress-plugin-footnotes-editor-button-2" width={800} height={600} />
+
+<Image src="/images/blog/citepro-andrew-norcross-and-the-mechanics-of-footnotes/a7d7f-citepro-wordpress-plugin-footnotes-editor-text-input.png" alt="citepro-wordpress-plugin-footnotes-editor-text-input" width={800} height={600} />
+
+As you might expect, clicking a footnote in the body text takes you to the content of the footnote at the end of the post. Go ahead, try it out[^5].
+
+If you need to get back up to the content, you can click on any non-hyperlinked text in the content of the footnote. That seemed like a bit of an easter egg feature to me, which I told Andrew, but like any good software developer he had a purpose in not adding additional ornamentation and leaving that design decision up to the person implementing the code on their site.
+
+I wanted to add a logical component to the interface of the footnote so that readers would have a road sign telling them there was a way back to the body text they just came from. FD Footnotes uses a "↩" which I think is a great solution, so I implemented it using a little CSS:
+
+[https://gist.github.com/ericdodds/a30ff1083d76c38b3535.js](https://gist.github.com/ericdodds/a30ff1083d76c38b3535.js)
+
+**Installing Citation Pro**
+
+If you want to use Citation Pro, head over to the repo on Github and download the .zip file[^6]. The link to download the file is on the righthand side of the page:
+
+<Image src="/images/blog/citepro-andrew-norcross-and-the-mechanics-of-footnotes/2aa13-download-citepro-footnotes-plugin-wordpress.png" alt="download-citepro-footnotes-plugin-wordpress" width={800} height={600} />
+
+Next, follow WordPress' guide on manually adding a plugin to your site[^7].
+
+If you want to add custom styles, use CSS to select the ".citepro" class and add it to the CSS Stylesheet Editor of WordPress. Here's the code I use:
+
+[https://gist.github.com/ericdodds/6c2646a84b93dce3a12d.js](https://gist.github.com/ericdodds/6c2646a84b93dce3a12d.js)
+
+And here's where to find that CSS Editor in WordPress:
+
+<Image src="/images/blog/citepro-andrew-norcross-and-the-mechanics-of-footnotes/edc21-wordpress-css-editor.png" alt="wordpress-css-editor" width={800} height={600} />
+
+I owe a huge thank you to Andrew, his programming smarts, and most importantly, his generosity.
+
+[^1]: You can read the original article, Why Footnotes, [here](https://ericdodds.com/why-footnotes/).
+
+
+
+[^2]: You can read about Markdown on [Daring Fireball's website](http://daringfireball.net/projects/markdown/).
+
+
+
+[^3]: Read the documentation [on his website](http://flagrantdisregard.com/footnotes-plugin/).
+
+
+
+[^4]: Follow Andrew Norcross on Twitter or learn more on his website.
+
+
+
+[^5]: Neat scrolling feature, huh?
+
+
+
+[^6]: Download the plugin from [Andrew's Github repo](https://github.com/norcross/citation-pro)
+
+
+
+[^7]: Adding plugins manually is easy. [Follow this guide](http://codex.wordpress.org/Managing_Plugins#Manual_Plugin_Installation) and you'll have Citepro up and running in no time.
