@@ -51,6 +51,11 @@ html {
   @apply underline transition-all decoration-neutral-400 dark:decoration-neutral-600 underline-offset-2 decoration-[0.1em];
 }
 
+/* Remove underlines from footnote superscript links */
+.prose sup a {
+  @apply no-underline;
+}
+
 .prose .anchor:after {
   @apply text-neutral-300 dark:text-neutral-700;
   content: '#';
@@ -147,4 +152,14 @@ table {
 
 .title {
   text-wrap: balance;
+}
+
+/* Always underline links in footnotes */
+.prose .footnotes a {
+  @apply underline;
+}
+
+/* Remove underlines from footnote backlink icons only */
+.prose .footnotes a.data-footnote-backref {
+  @apply no-underline;
 }

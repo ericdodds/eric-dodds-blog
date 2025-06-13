@@ -29,6 +29,110 @@ turndownService.addRule('wordpressLinks', {
   }
 });
 
+// Handle WordPress footnotes (common plugin output)
+turndownService.addRule('wordpressFootnotes', {
+  filter: function (node) {
+    return node.nodeName === 'SUP' && node.className && 
+           (node.className.includes('footnote') || node.className.includes('footnotes'));
+  },
+  replacement: function (content, node) {
+    // Extract footnote number or reference
+    const footnoteRef = node.textContent || content;
+    return `[^${footnoteRef}]`;
+  }
+});
+
+// Handle footnote content blocks
+turndownService.addRule('footnoteContent', {
+  filter: function (node) {
+    return node.nodeName === 'DIV' && node.className && 
+           (node.className.includes('footnotes') || node.className.includes('footnote-content'));
+  },
+  replacement: function (content, node) {
+    // Convert footnote content to markdown footnotes
+    const footnotes = [];
+    const footnoteElements = node.querySelectorAll('li[id*="footnote"], div[id*="footnote"]');
+    
+    footnoteElements.forEach((footnote, index) => {
+      const id = footnote.getAttribute('id') || `footnote-${index + 1}`;
+      const footnoteNumber = id.replace(/[^0-9]/g, '') || (index + 1);
+      const footnoteText = footnote.textContent.trim();
+      footnotes.push(`[^${footnoteNumber}]: ${footnoteText}`);
+    });
+    
+    return footnotes.length > 0 ? `\n\n${footnotes.join('\n')}` : '';
+  }
+});
+
+// Handle other common WordPress plugin outputs
+turndownService.addRule('wordpressShortcodes', {
+  filter: function (node) {
+    return node.nodeName === 'DIV' && node.className && 
+           (node.className.includes('shortcode') || node.className.includes('plugin-output'));
+  },
+  replacement: function (content, node) {
+    // Convert shortcode divs to markdown or preserve as HTML comment
+    return `\n<!-- WordPress shortcode: ${node.className} -->\n${content}\n`;
+  }
+});
+
+// Handle blockquotes and pullquotes
+turndownService.addRule('wordpressBlockquotes', {
+  filter: function (node) {
+    return node.nodeName === 'BLOCKQUOTE' || 
+           (node.nodeName === 'DIV' && node.className && 
+            (node.className.includes('pullquote') || node.className.includes('quote')));
+  },
+  replacement: function (content, node) {
+    const cite = node.querySelector('cite');
+    const citeText = cite ? cite.textContent : '';
+    const cleanContent = content.replace(/<cite>.*?<\/cite>/g, '').trim();
+    return citeText ? `> ${cleanContent}\n> \n> — ${citeText}` : `> ${cleanContent}`;
+  }
+});
+
+// Handle tables from plugins
+turndownService.addRule('wordpressTables', {
+  filter: 'table',
+  replacement: function (content, node) {
+    // Preserve table structure for markdown conversion
+    return `\n${content}\n`;
+  }
+});
+
+// Handle code blocks and syntax highlighting
+turndownService.addRule('wordpressCodeBlocks', {
+  filter: function (node) {
+    return node.nodeName === 'PRE' || 
+           (node.nodeName === 'DIV' && node.className && 
+            (node.className.includes('syntax') || node.className.includes('highlight')));
+  },
+  replacement: function (content, node) {
+    const codeElement = node.querySelector('code');
+    const language = codeElement ? codeElement.className.replace('language-', '') : '';
+    const codeContent = codeElement ? codeElement.textContent : content;
+    return language ? `\`\`\`${language}\n${codeContent}\n\`\`\`` : `\`\`\`\n${codeContent}\n\`\`\``;
+  }
+});
+
+// Handle custom styling and formatting
+turndownService.addRule('wordpressCustomFormatting', {
+  filter: function (node) {
+    return node.nodeName === 'SPAN' && node.className && 
+           (node.className.includes('highlight') || node.className.includes('emphasis'));
+  },
+  replacement: function (content, node) {
+    // Convert custom formatting to markdown
+    if (node.className.includes('highlight')) {
+      return `**${content}**`;
+    }
+    if (node.className.includes('emphasis')) {
+      return `*${content}*`;
+    }
+    return content;
+  }
+});
+
 function sanitizeFilename(title) {
   return title
     .toLowerCase()
@@ -50,6 +154,31 @@ function extractExcerpt(content, maxLength = 200) {
     return plainText;
   }
   return plainText.substring(0, maxLength).trim() + '...';
+}
+
+function processWordPressContent(content) {
+  // Pre-process content to handle WordPress-specific elements
+  let processedContent = content;
+  
+  // Handle WordPress shortcodes that might not be converted properly
+  processedContent = processedContent.replace(/\[([^\]]+)\]/g, (match, shortcode) => {
+    // Convert common shortcodes to markdown or remove them
+    if (shortcode.startsWith('footnote')) {
+      return `[^${shortcode.replace('footnote', '')}]`;
+    }
+    if (shortcode.startsWith('caption')) {
+      return ''; // Remove caption shortcodes
+    }
+    return match; // Keep other shortcodes as-is
+  });
+  
+  // Handle WordPress gallery shortcodes
+  processedContent = processedContent.replace(/\[gallery[^\]]*\]/g, '');
+  
+  // Handle WordPress embed shortcodes
+  processedContent = processedContent.replace(/\[embed\](.*?)\[\/embed\]/g, '$1');
+  
+  return processedContent;
 }
 
 async function fetchWordPressPosts(baseUrl, outputDir) {
@@ -77,8 +206,11 @@ async function fetchWordPressPosts(baseUrl, outputDir) {
     }
 
     for (const post of posts) {
+      // Pre-process content for WordPress-specific elements
+      let content = processWordPressContent(post.content.rendered);
+      
       // Convert HTML content to Markdown
-      const markdownContent = turndownService.turndown(post.content.rendered);
+      const markdownContent = turndownService.turndown(content);
       
       // Extract categories and tags
       const categories = post._embedded && post._embedded['wp:term'] 
