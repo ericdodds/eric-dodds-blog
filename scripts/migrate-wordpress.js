@@ -201,10 +201,12 @@ function convertWordPressToMDX(wordpressXmlPath, outputDir) {
       fs.mkdirSync(outputDir, { recursive: true });
     }
 
-    posts.forEach((post, index) => {
-      // Only process published posts
+    for (const post of posts) {
       if (post['wp:status'] && post['wp:status'][0] !== 'publish') {
-        return;
+        continue;
+      }
+      if (!post['wp:post_type'] || post['wp:post_type'][0] !== 'post') {
+        continue;
       }
 
       const title = post.title[0];
@@ -245,7 +247,7 @@ ${markdownContent}
       const filePath = path.join(outputDir, `${filename}.mdx`);
       fs.writeFileSync(filePath, mdxContent);
       console.log(`Created: ${filename}.mdx`);
-    });
+    }
 
     console.log(`\nMigration complete! ${posts.length} posts converted to MDX format.`);
     console.log(`Files saved to: ${outputDir}`);
