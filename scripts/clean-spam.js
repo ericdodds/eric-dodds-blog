@@ -16,6 +16,11 @@ function cleanSpamFromFile(filePath) {
   content = content.replace(/<a[^>]*\[[^\]]*\]\([^)]+\)[^>]*>/gi, '');
   content = content.replace(/<a[^>]*title="[^"]*\[[^\]]*\]\([^)]+\)[^"]*"[^>]*>/gi, '');
 
+  // Remove <a ...><Image ... /></a> or <a ...><Image ... />
+  // Remove <a ...> that wraps an <Image ... /> (with or without closing </a>)
+  content = content.replace(/<a[^>]*>\s*(<Image [^>]+ \/>)\s*<\/a>/gi, '$1'); // closed <a>
+  content = content.replace(/<a[^>]*>\s*(<Image [^>]+ \/>)/gi, '$1'); // unclosed <a>
+
   // Only write if changed
   if (content !== original) {
     fs.writeFileSync(filePath, content);
@@ -28,7 +33,7 @@ function cleanAllPosts() {
   const files = fs.readdirSync(postsDir);
   const mdxFiles = files.filter(file => file.endsWith('.mdx'));
 
-  console.log(`Checking ${mdxFiles.length} MDX files for spam/malformed links...`);
+  console.log(`Checking ${mdxFiles.length} MDX files for spam/malformed links and <a><Image/></a> wrappers...`);
   const updated = [];
 
   for (const file of mdxFiles) {
@@ -44,7 +49,7 @@ function cleanAllPosts() {
   } else {
     console.log('No posts needed cleaning.');
   }
-  console.log('\nSelective spam/malformed link cleanup complete!');
+  console.log('\nSelective spam/malformed link and <a><Image/></a> cleanup complete!');
 }
 
 cleanAllPosts(); 
