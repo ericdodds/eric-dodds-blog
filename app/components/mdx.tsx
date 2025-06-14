@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { MDXRemote } from 'next-mdx-remote'
+import { MDXRemote } from 'next-mdx-remote/rsc'
 import { highlight } from 'sugar-high'
 import React from 'react'
 import remarkGfm from 'remark-gfm'
@@ -48,7 +48,7 @@ function CustomLink(props) {
 }
 
 function RoundedImage(props) {
-  return <ClickableImage {...props} />
+  return <Image {...props} />
 }
 
 function Code({ children, ...props }) {
@@ -103,16 +103,14 @@ let components = {
   YouTube,
 }
 
-export function CustomMDX(props) {
-  return (
-    <MDXRemote
-      {...props}
-      components={{ ...components, ...(props.components || {}) }}
-      options={{
-        mdxOptions: {
-          remarkPlugins: [remarkGfm],
-        },
-      }}
-    />
-  )
+export async function CustomMDX(props) {
+  return await MDXRemote({
+    ...props,
+    components: { ...components, ...(props.components || {}) },
+    options: {
+      mdxOptions: {
+        remarkPlugins: [remarkGfm],
+      },
+    },
+  });
 }
