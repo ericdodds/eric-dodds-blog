@@ -167,3 +167,16 @@ table {
 .blog-content div.cursor-pointer + div.cursor-pointer {
   margin-top: 1.5rem;
 }
+
+.prose img + img {
+  margin-top: 1.5rem;
+}
+
+.prose blockquote {
+  border-left: 4px solid #d1d5db;
+  padding-left: 1em;
+  color: #6b7280;
+  font-style: italic;
+  margin: 1.5em 0;
+  background: #f9fafb;
+}

@@ -6,6 +6,8 @@ type Metadata = {
   publishedAt: string
   summary: string
   image?: string
+  published?: string | boolean
+  draft?: string | boolean
 }
 
 function parseFrontmatter(fileContent: string) {
@@ -51,6 +53,7 @@ function getMDXData(dir) {
 
 export function getBlogPosts() {
   return getMDXData(path.join(process.cwd(), 'app', 'blog', 'posts'))
+    .filter(post => post.metadata.published !== 'false' && post.metadata.published !== false && post.metadata.draft !== 'true' && post.metadata.draft !== true);
 }
 
 export function formatDate(date: string, includeRelative = false) {
