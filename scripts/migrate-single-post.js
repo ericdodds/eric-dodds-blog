@@ -171,42 +171,45 @@ function extractExcerpt(content, maxLength = 200) {
 function processWordPressContent(content) {
   // Pre-process content to handle WordPress-specific elements
   let processedContent = content;
+
+  // Clean up malformed HTML links and remove spam content
+  processedContent = processedContent.replace(/<a[^>]*\[.*?\]\([^)]*\)[^>]*>/gi, '');
+  processedContent = processedContent.replace(/<a[^>]*title="[^"]*\[.*?\]\([^)]*\)[^"]*"[^>]*>/gi, '');
+  
+  // Remove any remaining unclosed <a> tags that might contain spam
+  processedContent = processedContent.replace(/<a[^>]*\[.*?\]\([^)]*\)[^>]*>/gi, '');
   
   // Handle citepro footnotes specifically
   const citeproFootnotes = [];
   let footnoteCounter = 1;
-  
   processedContent = processedContent.replace(/\[citepro\](.*?)\[\/citepro\]/g, (match, footnoteText) => {
-    // Store the footnote content and return a reference
     citeproFootnotes.push(`[^${footnoteCounter}]: ${footnoteText.trim()}`);
     const footnoteRef = `[^${footnoteCounter}]`;
     footnoteCounter++;
     return footnoteRef;
   });
-  
   // Add the footnotes at the end of the content
   if (citeproFootnotes.length > 0) {
-    processedContent += '\n\n' + citeproFootnotes.map(f => f.trim()).join('\n\n') + '\n\n';
+    processedContent += '\n\n' + citeproFootnotes.map(f => f.trim()).join('\n\n');
   }
-  
-  // Handle WordPress shortcodes that might not be converted properly
-  processedContent = processedContent.replace(/\[([^\]]+)\]/g, (match, shortcode) => {
-    // Convert common shortcodes to markdown or remove them
-    if (shortcode.startsWith('footnote')) {
-      return `[^${shortcode.replace('footnote', '')}]`;
-    }
-    if (shortcode.startsWith('caption')) {
-      return ''; // Remove caption shortcodes
-    }
-    return match; // Keep other shortcodes as-is
-  });
-  
-  // Handle WordPress gallery shortcodes
+
+  // Remove WordPress shortcodes
   processedContent = processedContent.replace(/\[gallery[^\]]*\]/g, '');
-  
-  // Handle WordPress embed shortcodes
-  processedContent = processedContent.replace(/\[embed\](.*?)\[\/embed\]/g, '$1');
-  
+  processedContent = processedContent.replace(/\[caption[^\]]*\](.*?)\[\/caption\]/g, '$1');
+  processedContent = processedContent.replace(/\[embed[^\]]*\](.*?)\[\/embed\]/g, '$1');
+  processedContent = processedContent.replace(/\[footnote[^\]]*\](.*?)\[\/footnote\]/g, '$1');
+  processedContent = processedContent.replace(/\[citepro\](.*?)\[\/citepro\]/g, '$1');
+
+  // Remove other common shortcodes
+  processedContent = processedContent.replace(/\[[^\]]+\]/g, '');
+
+  // Clean up any remaining HTML entities
+  processedContent = processedContent.replace(/&nbsp;/g, ' ');
+  processedContent = processedContent.replace(/&amp;/g, '&');
+  processedContent = processedContent.replace(/&lt;/g, '<');
+  processedContent = processedContent.replace(/&gt;/g, '>');
+  processedContent = processedContent.replace(/&quot;/g, '"');
+
   return processedContent;
 }
 

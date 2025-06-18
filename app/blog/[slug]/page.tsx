@@ -1,7 +1,11 @@
 import { notFound } from 'next/navigation'
-import { CustomMDX } from 'app/components/mdx'
 import { formatDate, getBlogPosts } from 'app/blog/utils'
 import { baseUrl } from 'app/sitemap'
+import ImageModalEnhancer from 'app/components/ImageModalEnhancer'
+import { MDXRemote } from 'next-mdx-remote/rsc'
+import remarkGfm from 'remark-gfm'
+import Image from 'next/image'
+import YouTube from 'app/components/YouTube'
 
 export async function generateStaticParams() {
   let posts = getBlogPosts()
@@ -52,6 +56,20 @@ export async function generateMetadata({ params }) {
   }
 }
 
+const components = {
+  h1: (props) => <h1 {...props} />,
+  h2: (props) => <h2 {...props} />,
+  h3: (props) => <h3 {...props} />,
+  h4: (props) => <h4 {...props} />,
+  h5: (props) => <h5 {...props} />,
+  h6: (props) => <h6 {...props} />,
+  Image: (props) => <Image {...props} />,
+  a: (props) => <a {...props} />,
+  code: (props) => <code {...props} />,
+  Table: (props) => <table {...props} />,
+  YouTube,
+}
+
 export default async function Blog({ params }) {
   const { slug } = await params
   let post = getBlogPosts().find((post) => post.slug === slug)
@@ -94,7 +112,17 @@ export default async function Blog({ params }) {
       </div>
       <article className="prose">
         <div className="blog-content">
-          <CustomMDX source={post.content} />
+          <ImageModalEnhancer>
+            {await MDXRemote({
+              source: post.content,
+              components,
+              options: {
+                mdxOptions: {
+                  remarkPlugins: [remarkGfm],
+                },
+              },
+            })}
+          </ImageModalEnhancer>
         </div>
       </article>
     </section>
