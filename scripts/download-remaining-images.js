@@ -101,11 +101,6 @@ async function downloadRemainingImages() {
     
     // Other images
     { filename: 'wpid-533a3e5a1a03d8.777010151-1024x768.jpg', post: 'midnight-oil-and-owning-a-company.mdx' },
-    { filename: 'the-western-desert-canyon-1-800x533.jpg', post: 'photos-the-western-desert.mdx' },
-    { filename: 'the-western-desert-canyons-and-clouds-800x533.jpg', post: 'photos-the-western-desert.mdx' },
-    { filename: 'the-western-desert-mountains-and-rivers-800x532.jpg', post: 'photos-the-western-desert.mdx' },
-    { filename: 'the-western-desert-canyon-800x533.jpg', post: 'photos-the-western-desert.mdx' },
-    { filename: 'plane-window-800x533.jpg', post: 'photos-the-western-desert.mdx' },
     { filename: '2014-06-09-00.33.07-1024x768.jpg', post: 'quick-takes-french-farm-breakfast.mdx' }
   ];
   
