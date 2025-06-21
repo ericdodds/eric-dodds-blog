@@ -7,7 +7,7 @@ export default function Page() {
         Eric Dodds Weblog
       </h1>
       <p className="mb-4">
-        {`My name is Eric Dodds. I'm a Christian, husband, father and tech product leader. This is my weblog. `}
+        {`My name is Eric Dodds. I'm a Christian, husband, father and tech product leader.`}
       </p>
       <hr></hr>
       <div className="my-8">
