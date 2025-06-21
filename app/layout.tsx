@@ -14,10 +14,10 @@ export const metadata: Metadata = {
     default: 'Eric Dodds Weblog',
     template: '%s | Eric Dodds Weblog',
   },
-  description: 'Welcome to ericdodds.com.',
+  description: 'Welcome to my corner of the internet.',
   openGraph: {
-    title: 'Eric Dodds WEblog',
-    description: 'Welcome to ericdodds.com.',
+    title: 'Eric Dodds Weblog',
+    description: 'Welcome to my corner of the internet.',
     url: baseUrl,
     siteName: 'Eric Dodds Weblog',
     locale: 'en_US',
