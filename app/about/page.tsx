@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'About',
-  description: 'A little bit about me.',
+  description: 'Learn about Eric Dodds.',
 };
 
 export default function AboutPage() {
@@ -11,6 +11,9 @@ export default function AboutPage() {
       <h1 className="title font-semibold text-2xl tracking-tighter">About Me</h1>
       <div className="prose mt-8">
         <h3 className="title font-semibold text-xl tracking-tighter">Professional bio</h3>
+        <p>
+          I've founded multiple businesses, both venture-backed and bootstrapped. Several companies failed, one exited and one is still running under new ownership. 
+        </p>
         <p>
           I'm currently the Head of Product at RudderStack, a customer data infrastructure company that streams behavioral event data. 
         </p>

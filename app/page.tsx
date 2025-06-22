@@ -24,8 +24,15 @@ export default function Page() {
           className="underline transition-all decoration-neutral-400 dark:decoration-neutral-600 underline-offset-2 decoration-[0.1em]"
         >
           about me
+        </Link>
+        ,{' '}or{' '}
+        <Link
+          href="/contact"
+          className="underline transition-all decoration-neutral-400 dark:decoration-neutral-600 underline-offset-2 decoration-[0.1em]"
+        >
+          reach out
         </Link>{' '}
-        and reach out to say hello or ask a question.
+        to say hello.
       </p>
       <hr></hr>
       <div className="my-8">
