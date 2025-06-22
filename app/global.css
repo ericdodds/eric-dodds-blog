@@ -174,10 +174,10 @@ table {
 
 .prose blockquote {
   border-left: 4px solid #d1d5db;
-  padding-left: 1em;
+  padding: 0.5rem 1rem;
   color: #6b7280;
   font-style: italic;
-  margin: 1.5em 0;
+  margin: 1.5rem 0;
   background: #f9fafb;
 }
 
