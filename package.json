@@ -3,13 +3,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "migrate:wordpress": "node scripts/migrate-wordpress.js",
-    "migrate:fetch": "node scripts/fetch-wordpress-posts.js",
-    "migrate:analyze": "node scripts/analyze-wordpress-content.js",
-    "migrate:single": "node scripts/migrate-single-post.js",
-    "fix:internal-links": "node scripts/fix-internal-links.js",
-    "fix:blog-links": "node scripts/fix-blog-links.js"
+    "start": "next start"
   },
   "dependencies": {
     "@tailwindcss/postcss": "4.1.10",
@@ -25,14 +19,11 @@
     "remark-footnotes": "^5.0.0",
     "remark-gfm": "^4.0.1",
     "sugar-high": "^0.9.3",
-    "tailwindcss": "4.1.10",
-    "turndown": "^7.1.2",
-    "xml2js": "^0.6.2"
+    "tailwindcss": "4.1.10"
   },
   "devDependencies": {
     "@types/node": "24.0.1",
     "@types/react": "19.1.8",
-    "@types/xml2js": "^0.4.14",
     "typescript": "5.8.3"
   }
 }
