@@ -16,7 +16,7 @@ You should be able to clone this repo and get the app running pretty easily.
 
 ## Summary of Changes from Vercel Blog Starter
 
-### 🎨 **UI/UX Enhancements**
+### 🖱️ **UI/UX Enhancements**
 
 #### **Image Modal Functionality**
 - **Added**: `app/components/ImageModal.tsx` - A modal component for displaying images in full-screen view
@@ -82,7 +82,7 @@ You should be able to clone this repo and get the app running pretty easily.
 - Link fixing utilities
 - Content analysis scripts
 
-### �� **Styling & Design**
+### 🎨 **Styling & Design**
 
 #### **CSS Enhancements**
 - **Modified**: `app/global.css` - Enhanced typography and spacing
