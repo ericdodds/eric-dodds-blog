@@ -25,7 +25,7 @@ export default function Page() {
         >
           about me
         </Link>
-        ,{' '}or{' '}
+        {' '}or{' '}
         <Link
           href="/contact"
           className="underline transition-all decoration-neutral-400 dark:decoration-neutral-600 underline-offset-2 decoration-[0.1em]"

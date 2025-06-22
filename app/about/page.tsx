@@ -12,19 +12,22 @@ export default function AboutPage() {
       <div className="prose mt-8">
         <h3 className="title font-semibold text-xl tracking-tighter">Professional bio</h3>
         <p>
+          I'm currently the Head of Product at RudderStack, a pipeline infrastructure company that streams behavioral event data. 
+        </p>
+        <p>
           I've founded multiple businesses, both venture-backed and bootstrapped. Several companies failed, one exited and one is still running under new ownership. 
         </p>
         <p>
-          I'm currently the Head of Product at RudderStack, a customer data infrastructure company that streams behavioral event data. 
-        </p>
-        <p>
-          I am a successful former founder and current software product leader. Over the years I've held key go-to-market roles with a focus on marketing, but have found the most joy working close to and in product. I particularly enjoy tackling the XY problem, working directly with engineers and product marketing. 
+          Over the years I've held key go-to-market roles with a focus on marketing, but have found the most joy working close to and in product. I particularly enjoy tackling the XY problem, working directly with engineers and driving growth through product marketing. 
        </p>
        <p>
-          I've proven my ability to build teams, ship work as an individual contributor and take functions from 0-1 as a player-coach (and enjoy each). I function well in ambiguity.
+          I've proven my ability to take functions from 0-1 (and beyond) as a player-coach, build teams and ship work as an individual contributor. I function well in ambiguity.
        </p>
        <p>
-          I've built a variety of tactical skills across product, marketing, product marketing, data/analytics and building efficient operations in each of those areas. (In another life I would have been a software engineer, so the age of AI is a true dream as a technical tinkerer.) My recent focus areas as a product leader have been:
+          I've mastered a variety of tactical skills across product, marketing, product marketing, data/analytics and have built efficient operations in each of those areas. In another life I would have been a software engineer, so the age of AI is a true dream as a technical tinkerer. 
+       </p>
+       <p>
+        My recent focus areas as a product leader have been:
        </p>
 
           <ul>
@@ -39,7 +42,7 @@ export default function AboutPage() {
        </p>
 
         <blockquote>
-        Eric has a unique ability to translate complex technical concepts into compelling narratives that move businesses forward. At RudderStack, he was the partner I consistently turned to when we needed to challenge our thinking and ensure we were building something customers would actually value. His product intuition, combined with his marketing expertise, made him an invaluable cross-functional leader who could be counted on when execution really mattered.
+         Eric has a unique ability to translate complex technical concepts into compelling narratives that move businesses forward. At RudderStack, he was the partner I consistently turned to when we needed to challenge our thinking and ensure we were building something customers would actually value. His product intuition, combined with his marketing expertise, made him an invaluable cross-functional leader who could be counted on when execution really mattered.
         <br /><br />
         <strong>—Sagan Shultz, Product @ Linear</strong>
         </blockquote>
@@ -47,7 +50,7 @@ export default function AboutPage() {
       <div className="prose mt-8">
         <h3 className="title font-semibold text-xl tracking-tighter">Writing</h3>
         <p>
-         I have considered a career in writing, which may happen in the future, but I truly enjoy product work and practice the craft almost every day, which scratches the itch. 
+         I have considered a career in writing, which may happen in the future, but I truly enjoy product work and it gives me the opportunity to practice the craft of writing almost every day. 
         </p>
         <p>
          This blog went stale for some time, but I wrote an immense amount in that time, both personally and professionally (including a published memoir about my special needs brother-in-law). 
