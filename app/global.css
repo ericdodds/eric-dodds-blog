@@ -159,6 +159,22 @@ table {
   @apply underline;
 }
 
+/* Add horizontal rule above footnotes section */
+.prose .footnotes::before {
+  content: '';
+  display: block;
+  height: 1px;
+  background-color: #e5e7eb;
+  margin: 2rem 0 1rem 0;
+}
+
+/* Dark mode support for horizontal rule */
+@media (prefers-color-scheme: dark) {
+  .prose .footnotes::before {
+    background-color: #374151;
+  }
+}
+
 /* Remove underlines from footnote backlink icons only */
 .prose .footnotes a.data-footnote-backref {
   @apply no-underline;

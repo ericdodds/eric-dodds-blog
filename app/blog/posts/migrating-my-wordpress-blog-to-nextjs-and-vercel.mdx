@@ -1,0 +1,89 @@
+---
+title: 'Migrating my blog from WordPress to Next.js and Vercel'
+published: true
+publishedAt: '2025-06-23'
+summary: 'I migrated my 13-year-old WordPress blog to Next.js and Vercel using Cursor . The migration process involved exporting WordPress content, identifying edge cases, testing and refining migration scripts and manually QAing the content. The result was a clean and expedient migration, with estimating a total project time of 10-15 hours.'
+categories: ['Nerdery']
+
+---
+
+*If you want an overview, [jump to the AI summary](#ai-summary-of-this-post). If you want to perform a similar migration and skip to the tactical stuff, [jump down to the resources section](#resources).* 
+
+This website dates back to 2008, the year I graduated college, making it 17 years old. 
+
+If I remember correctly, the earliest versions of the site were built in iWeb[^1], which is likely why the early saves on WayBack Machine are broken. I haven't thought about iWeb in over decade, but looking back reminds me of how advanced the software was for its time[^2]. 
+
+The IP address history shows that WordPress hosting (via 1&1) started in 2012. The earliest WayBack Machine capture I found dates to 2013. I remember purchasing the Hardy WordPress theme from ThemeTrust for $49. Interestingly, the theme is still available for the same price [^3]. I wonder how much revenue it has generated over the decades. 
+
+<Image src="/images/blog/migrating-my-wordpress-blog-to-nextjs-and-vercel/ericdodds-dot-com-2013.png" alt="migrating-my-wordpress-blog-to-nextjs-and-vercel" width={800} height={600} />
+
+## Why migrate?
+
+WordPress powers a good bit of the internet and helped me serve my site (mostly) without a fuss for years, but I became increasingly frustrated as a customer. 
+
+After trying several hosting providers, I ended up using WordPress.com, which has a lot of integrated benefits. Their monetization strategy is smart and works well for businesses and high-traffic sites, but for a personal blog, it became too expensive for the value. On the security side, even running on WordPress.com was a problem and my content was injected with spam, though the breaches were few and far between. 
+
+Lock-in was another annoyance. I ran a few custom plugins and my content formatting had changed over the years with updates to the WordPress editor, which would make migration a painful project. 
+
+The biggest factor, though, was my increasing use of modern web development tools. Frameworks like Next.js running on Vercel feel lightyears beyond the traditional WordPress workflow, especially when you bake in AI coding agents like Cursor. 
+
+## Using Cursor to migrate from WordPress to Next.js 
+
+At the beginning of June I traveled for work and the schedule allowed for several free nights and a free weekend. After getting that my annual WordPress.com renewal was coming up, I decided it was time to knock out the migration. 
+
+My approach was simple: 
+- Find a clean Next.js blog template from Vercel
+- Use Cursor to help me migrate content from WordPress
+- Use Cursor to modify the site (styling, additional pages)
+
+I created a new GitHub repo, cloned the the Vercel Portfolio Blog Starter[^4] template, opened Cursor and started with this prompt: 
+
+> let's migrate a blog from a wordpress site into this next.js app. the website is @https://ericdodds.com/ . first, i want to migrate all of the blog posts. i know that i can export content from wordpress. is there a way i can export it as markdown or mdx files so that i can easily add them to the posts directory in this next app? 
+
+### Migration Summary
+
+Here is an overview of the steps I took using Cursor to migrate the content (240+ posts) into the Next.js app: 
+
+1. **Export WordPress content**: I initially exported posts from WordPress as an XML file, but later on migrating older images required  exporting the media XML file and a download of the entire site (which was 250+ MB!). 
+2. **Analyze posts for edge cases**: I has Cursor generate a script to identify posts with footnotes, images, and embeds, which I knew were the edge cases that wouldn't migrate well (partly due to custom plugins). 
+3. **Test migration of individual posts for edge cases**: Once I  had identified the posts with edge cases, I had Cursor generate a migration script for a single post so that I could run test imports, find issues, then modify the script until the content was ported successfully. Many of these edge cases were due to plugins (for example, I used a custom plugin for footnotes). 
+4. **Run a full content migration**: Once the single post script was correctly handling the edge cases I'd found, I had Cursor update a full migration script based on the single post script, then ran a full migration. 
+5. **Grep and QA for formatting misses and spam**: The formatting changes and security issues in WordPress over the years made for a nasty long-tail of edge cases. I used Cursor to write scripts to identify posts with these issues, which narrowed down the starting point. The trickiest formatting problem was paragraph spacing. Even after multiple refinements to the migration script, there were many instances of two sentences running together where there should have been a line break for a paragraph in Markdown.
+6. **Fix deployment errors**: With the content migrated, I switched my focus to deploying the app, which had problems because of formatting errors from migration (and a few weird things Cursor did to the template). 
+6. **Final manual QA and cleanup**: Once the site deployed to preview successfully, I manually QA'd every post and cleaned up the last of the edge cases. I'm sure I missed a few things, but as migrations go, it's incredibly clean. I was blown away by how expedient it was to use Cursor compared with how long it would have taken me using almost any other method. 
+7. **Styling, features and DNS**: When content migration was complete, I updated several styles and added a small feature (image zoom on click). Once it was functioning well I merged the changes and switched the DNS. 
+8. **App cleanup**: While the DNS changes were propagating, I used Cursor to clean up everything related to the migration, which included deleting scripts, cleaning up `package.json` and removing dependencies installed for the migration. 
+9. **Additional pages and features**: My last step was to add About and Contact pages. I added a form to the Contact page that uses Basin[^5] to process form submissions. 
+
+### Cursor stats
+I prompted GPT to estimate a few basic statistics about the chat with Cursor. Here are the results with my commentary: 
+
+- **Total User Prompts**: 110+
+- **Number of corrections I gave to Cursor**: 15+
+	- A ~15% rate of the LLM doing dumb things feels accurate for this project (and is impressively low). 
+- **Estimated Project Time**: 6–8 hours total
+	- This is low because it doesn't include manual QA time. I didn't track it, but I would estimate ~5+ hours, putting the total project time at 10-15 hours. 
+
+## AI summary of this post
+
+I migrated my 13-year-old WordPress blog to Next.js and Vercel using Cursor . The migration process involved exporting WordPress content, identifying edge cases, testing and refining migration scripts and manually QAing the content. The result was a clean and expedient migration, with estimating a total project time of 10-15 hours.
+
+## Resources 
+
+Here are helpful resources if you want to perform a similar migration or clone my blog app: 
+
+- [GitHub repo for this blog](https://github.com/ericdodds/eric-dodds-blog)
+- [GitHub repo with migration scripts and Cursor chat files](https://github.com/ericdodds/wordpress-to-next-blog-migration)
+	- [Migration scripts](https://github.com/ericdodds/wordpress-to-next-blog-migration/tree/main/scripts)
+	- [Cursor chat 1](https://github.com/ericdodds/wordpress-to-next-blog-migration/blob/main/cursor_migrate_blog_posts_to_next_js_ap.md)
+	- [Cursor chat 2](https://github.com/ericdodds/wordpress-to-next-blog-migration/blob/main/cursor_fixing_blockquote_formatting_iss.md)
+
+[^1]: You can see the 2008 product page for iWeb [on the WayBack Machine](https://web.archive.org/web/20080831211837/http://www.apple.com/ilife/iweb/). 
+
+[^2]: For all the weird things iWeb did under the hood to help you get a website online, it was far ahead of its time (iWeb was released in 2006, 7 years before Webflow). WordPress and Blogger paved the path for the first major wave of online publishing, but custom websites were inaccessible to the average person.
+
+[^3]: The Hardy theme is [still available](https://themetrust.com/wordpress-themes/hardy/) after all these years. 
+
+[^4]: You can demo and deploy the Vercel Portfolio Blog Starter app on GitHub.  
+
+[^5]: [Basin](https://usebasin.com/) is a wonderful tool for processing form submissions. 

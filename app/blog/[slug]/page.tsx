@@ -4,6 +4,7 @@ import { baseUrl } from 'app/sitemap'
 import ImageModalEnhancer from 'app/components/ImageModalEnhancer'
 import { MDXRemote } from 'next-mdx-remote/rsc'
 import remarkGfm from 'remark-gfm'
+import rehypeSlug from 'rehype-slug'
 import Image from 'next/image'
 import YouTube from 'app/components/YouTube'
 
@@ -119,6 +120,7 @@ export default async function Blog({ params }) {
               options: {
                 mdxOptions: {
                   remarkPlugins: [remarkGfm],
+                  rehypePlugins: [rehypeSlug],
                 },
               },
             })}
