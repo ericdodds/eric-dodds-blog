@@ -70,7 +70,6 @@ export default function ImageModalEnhancer({ children }) {
             style={{
               maxWidth: '90vw',
               maxHeight: '90vh',
-              borderRadius: '1rem',
               boxShadow: '0 2px 16px rgba(0,0,0,0.5)',
               background: 'white',
             }}

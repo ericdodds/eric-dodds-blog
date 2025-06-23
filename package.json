@@ -16,6 +16,7 @@
     "postcss": "^8.4.35",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "rehype-slug": "^6.0.0",
     "remark-footnotes": "^5.0.0",
     "remark-gfm": "^4.0.1",
     "sugar-high": "^0.9.3",
