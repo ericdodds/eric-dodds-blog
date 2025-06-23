@@ -1,10 +1,12 @@
 # Eric Dodds Weblog
 
-This is my personal website. I ran it on WordPress for years, then finally bit the bullet and migrated it into a super snappy Next.js app on Vercel. 
+This is my personal website. It hosts my blog posts, tells readers a bit about me and had a contact form for people who want to reach out. 
 
 ## Migration from WordPress
 
-I'll write a full blog post about the process, but the short version is that I used Cursor to do the entire migration. What would have taken an eternity was a weekend project, even with some nasty edge cases. 
+I the site on WordPress for years, then finally bit the bullet and migrated it into a super snappy Next.js app on Vercel. 
+
+I [wrote a blog post](https://www.ericdodds.com/blog/migrating-my-wordpress-blog-to-nextjs-and-vercel?utm_source=github-blog-repo) about the migration. 
 
 ## If you want to clone my site
 
