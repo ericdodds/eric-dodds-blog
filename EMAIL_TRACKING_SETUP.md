@@ -5,7 +5,7 @@ This guide will help you set up the email tracking pixel system for your blog.
 ## Overview
 
 The email tracking system consists of:
-1. A Vercel edge function (`/api/pixel`) that receives tracking pixel requests
+1. A Vercel edge function (`/api/img`) that receives tracking pixel requests
 2. Integration with PostHog for analytics
 3. A test page to verify functionality
 
@@ -47,26 +47,26 @@ POSTHOG_API_KEY=your_posthog_api_key_here
 
 2. Test the API directly by visiting:
    ```
-   http://localhost:3000/api/pixel?id=test-123&recipientEmail=test@example.com&subject=Test&campaign=test
+   http://localhost:3000/api/img?id=test-123&recipientEmail=test@example.com&subject=Test&campaign=test
    ```
 3. You should see a transparent pixel load (or download a 1x1 GIF file)
 
 #### Manual Testing
 You can also test the API directly by visiting:
 ```
-http://localhost:3000/api/pixel?id=test-123&recipientEmail=test@example.com&subject=Test&campaign=test
+http://localhost:3000/api/img?id=test-123&recipientEmail=test@example.com&subject=Test&campaign=test
 ```
 
 ### 4. Using the Tracking Pixel
 
 #### Basic Usage
 ```html
-<img src="https://your-domain.com/api/pixel?id=unique-id" width="1" height="1" alt="" style="display:none;">
+<img src="https://your-domain.com/api/img?id=unique-id" width="1" height="1" alt="" style="display:none;">
 ```
 
 #### Full Usage with All Parameters
 ```html
-<img src="https://your-domain.com/api/pixel?id=unique-id&recipientName=John%20Doe&recipientEmail=john@example.com&subject=Meeting%20Request&campaign=newsletter" width="1" height="1" alt="" style="display:none;">
+<img src="https://your-domain.com/api/img?id=unique-id&recipientName=John%20Doe&recipientEmail=john@example.com&subject=Meeting%20Request&campaign=newsletter" width="1" height="1" alt="" style="display:none;">
 ```
 
 ## Parameters

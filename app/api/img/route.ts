@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
                      'unknown';
     const referer = request.headers.get('referer') || '';
     
-    // Return pixel without sending to PostHog if userAgent matches MailMate (fuzzy match) and not a test
+    // Return pixel without sending to PostHog if userAgent matches MailMate (fuzzy match) and not a test (for /api/img endpoint)
     if (!params.test && /mailmate/i.test(userAgent)) {
       const pixelData = Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64');
       return new NextResponse(pixelData, {
@@ -159,7 +159,7 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    // Return a transparent 1x1 GIF pixel
+    // Return a transparent 1x1 GIF pixel for /api/img
     const pixelData = Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64');
     
     return new NextResponse(pixelData, {
