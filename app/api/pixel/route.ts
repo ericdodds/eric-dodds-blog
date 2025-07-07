@@ -6,6 +6,7 @@ interface TrackingParams {
   subject?: string;
   campaign?: string;
   customId?: string;
+  test?: string;
 }
 
 interface PostHogEvent {
@@ -31,6 +32,7 @@ export async function GET(request: NextRequest) {
       subject: searchParams.get('subject') || undefined,
       campaign: searchParams.get('campaign') || undefined,
       customId: searchParams.get('id') || undefined,
+      test: searchParams.get('test') || undefined,
     };
 
     // Extract headers for additional information
@@ -40,6 +42,21 @@ export async function GET(request: NextRequest) {
                      'unknown';
     const referer = request.headers.get('referer') || '';
     
+    // Return pixel without sending to PostHog if userAgent matches MailMate (fuzzy match) and not a test
+    if (!params.test && /mailmate/i.test(userAgent)) {
+      const pixelData = Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64');
+      return new NextResponse(pixelData, {
+        status: 200,
+        headers: {
+          'Content-Type': 'image/gif',
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+          'Access-Control-Allow-Origin': '*',
+        },
+      });
+    }
+
     // Generate a unique tracking ID if not provided
     const trackingId = params.customId || `email-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
     
@@ -83,6 +100,7 @@ export async function GET(request: NextRequest) {
         // Event metadata
         eventSource: 'email_pixel',
         eventType: 'email_open',
+        test: params.test || undefined,
       },
     };
 
