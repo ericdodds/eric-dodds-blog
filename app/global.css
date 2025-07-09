@@ -201,3 +201,15 @@ table {
 .prose ol + img {
   margin-top: 1.5rem;
 }
+
+.prose hr {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 2rem 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  .prose hr {
+    border-top: 1px solid #374151;
+  }
+}
