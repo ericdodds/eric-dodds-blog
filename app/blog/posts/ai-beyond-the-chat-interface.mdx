@@ -5,11 +5,9 @@ summary: 'AI chat is ubiquitous, but it's not the interface of the future.'
 categories: ['Nerdery', 'AI']
 ---
 
-Chat has emerged as the primary way to interact with AI, but it won’t keep the throne. In three years (or less), AI interfaces will move beyond chat into agent and multi-modal workflows. 
+Chat has emerged as the primary way to interact with AI, but it won’t keep the throne. In three years (or less), AI interfaces will move into agent and multimodal workflows because using chat as the primary form factor constrains what users can do with the technology. 
 
-This is because using chat as the primary form factor limits what can be done with the underlying technology. 
-
-The blank-page, prompt-based UI has become ubiquitous, but AI leaders, technology thinkers and UX experts increasingly acknowledge the constraints. 
+The blank-page, prompt-based UI has become ubiquitous, but AI leaders, technology thinkers and UX experts increasingly acknowledge the limitations. 
 
 At a conference earlier this year I attended a panel discussion that included Naveen Rao, VP of AI at Databricks. Here’s what he had to say about chat[^1]: 
 
@@ -47,8 +45,8 @@ Without making a direct statement about the utility of the chat interface, Figma
 
 There are an immense number of AI chat implementations today, but they can be roughly categorized into three groups along a spectrum from open-ended to context/task-specific. 
 1. **General chat**: deployed as a stand-alone web or mobile app that you can ask anything. This is ChatGPT on my dad’s iPhone. 
-2. **General chat within a closed-system**: deployed within a closed software system, but as a general tool you can ask anything about that software system. This is the generic in-app chat bubble re-imagined as an AI helper. 
-3. **Context/task-specific chat**: deployed within software system that is itself the context for a specific task (Cursor) or within a task-specific feature in a larger software system (chatting with AI about a specific account in Gong).
+2. **General chat within a closed system**: deployed within a closed software system, but as a general tool you can ask anything about that software system. This is the generic in-app chat bubble re-imagined as an AI helper. 
+3. **Context/task-specific chat**: deployed within a software system that is itself the context for a specific task (Cursor) or within a task-specific feature in a larger software system (chatting with AI about a specific account in Gong).
 
 In the conclusion I cover the future of AI interfaces, many of which will go beyond chat entirely. 
 
@@ -68,15 +66,15 @@ Literacy is the best proxy I could find for writing skill (it is a composite of 
 
 According to those numbers, more than half of adults age 16-65 are ill-equipped to get full value from LLMs through chat-based input. 
 
-This problem is much larger on the general end of the spectrum. The more task-specific the context, the more pre-prompting can be built into the system to remove the burden from the end users. 
+This problem is much larger on the general end of the spectrum. The more task-specific the context, the more pre-prompting and intent capture can be built into the system to remove the burden from the end users. Intent capture can happen for general use, but it's a much longer road. 
 
 ### The blank screen problem
 
 Open-ended chat faces the blank screen problem, especially on the general end of the spectrum. The most similar technology we’ve seen is voice assistants like Alexa, Siri and Google Home. While technically capable of advanced workflows, they are mostly used for rudimentary tasks like information retrieval (search), checking the weather, communication (email and text) and entertainment (playing music)[^7]. 
 
-This makes basic sense: if a user can do anything with an open-ended tool, they have to exert a significant amount of creative cognitive effort to decide what they want to use it for. Most users will default to what’s simple and familiar, which I suspect is a major reason behind the surprisingly low daily and weekly active user numbers that Benedict Evans highlighted[^2]. 
+This makes basic sense: if a user can do anything with an open-ended tool, they have to exert a significant amount of creative cognitive effort to decide what they want to use it for. Most users will default to what’s simple and familiar, which I suspect is a major reason behind the surprisingly low daily and weekly active user numbers that Benedict Evans highlighted[^2]. Like voice assistants, general chat is powerful but underutilized for advanced workflows. 
 
-Web and app interfaces give designers more opportunities to assist users facing a blank input field and we are already seeing solutions like capability cards (pre-scripted prompts as starting points), form-assisted chat (where some input is structured) and other direct in-line manipulation through sliders and clickable elements. Those GUI-based UX details will help educate users in a way that voice never could, which will likely accelerate adoption of more advanced use cases, but I doubt they will be enough to turn a significant percentage of casual general chat users into power users. 
+Web and app interfaces give designers more opportunities to assist users facing a blank input field and we are already seeing solutions like capability cards (pre-scripted prompts as starting points), form-assisted chat (where some input is structured) and other direct inline manipulation through sliders and clickable elements. Those GUI-based UX details will help educate users in a way that voice never could, which will likely accelerate adoption of more advanced use cases, but I doubt they will be enough to turn a significant percentage of casual general chat users into power users. 
 
 When I ran product at RudderStack, we faced a similar blank screen challenge with our Transformations feature, which allowed  users to write stateless JavaScript or Python to operate on event payloads. The default interface was a blank code editor. 
 
@@ -88,7 +86,7 @@ In the original draft of this post, I wrote the following as a conclusion to thi
 
 _I’ll be interested to see how these problems are overcome—or if it makes sense to solve them for general chat. Cost efficiency may allow the major players to consume much more context in the background and the average user will become more educated on capabilities over time, but overcoming the path of least resistance is incredibly hard._
 
-_At ~800 million ChatGPT users[^8] and counting, combined with a roaring API business, perhaps these aren’t problems for the likes of OpenAI._
+_At ~700 million ChatGPT users[^8] and counting (as of September 2025), combined with a roaring API business, perhaps these aren’t problems for the likes of OpenAI._
 
 The release of Pulse might suggest that there is a problem—or at least validates that the hypothesis that AI interfaces need to move beyond user-initiated chat. I cover Pulse in more detail at the end of the post in the section on the future of interfaces. 
 
@@ -114,7 +112,7 @@ Despite these limitations, chat has been the go-to interface for implementing AI
 
 ### Cost
 
-AI is expensive to run and many companies are selling products at a loss—even those with record-breaking growth. People who have studied this issue on a much deeper level have discovered that “every _single_ company offering any kind of generative AI service...is, from every report [the author] can find, losing money...”[^10] Indeed, the cost of users saying “thank you” at the end of a chat is astounding[^11]. 
+AI is expensive to run and many companies are selling products at a loss—even those with record-breaking growth. People who have studied this issue on a much deeper level argue that “every _single_ company offering any kind of generative AI service...is, from every report [the author] can find, losing money...”[^10] Indeed, the cost of users saying “thank you” at the end of a chat is astounding[^11]. 
 
 The major players deploying general chat have built their app models around the interface and associated costs, but for chat deployed within other systems, chat is a very helpful form factor for both controlling cost and ensuring that when cost is incurred it’s closely associated with value experienced by the user. 
 
@@ -162,11 +160,11 @@ Conversations can introduce new ideas and help you think more clearly, so all ki
 
 As costs decrease and we continue to develop use cases for specific users, we will move beyond today's chat-based-interface-for-all and see a massive wave of new user experiences built on AI. A big part of this shift will be adapting interfaces to the context and user type. Casual users will need more guidance, while advanced users will prefer the specificity of chat and deeper configurations. 
 
-This next wave will include agents that decrease the need for interfaces, proactive outputs (with disappearing AI) and multi-modal UIs. 
+This next wave will include agents that decrease the need for interfaces, proactive outputs (with disappearing AI) and multimodal UIs. 
 
 ### Fewer interfaces due to agents
 
-One interesting development has been using chat as an interface to completely separate software systems through MCP servers. I can connect Linear, Notion, GitHub and other services to Claude and perform all kinds of actions in those services. Agents can perform actions _across_ systems. It’s an incredibly powerful paradigm that is in the early stages of changing how knowledge work is performed. 
+One interesting development has been using chat as an interface to completely distinct software systems through MCP servers. I can connect Linear, Notion, GitHub and other services to Claude and perform all kinds of actions in those services. Agents can perform actions _across_ systems. It’s an incredibly powerful paradigm that is in the early stages of changing how knowledge work is performed. 
 
 One result of the MCP architecture is that we will use fewer interfaces in the future and/or spend much more time in the ‘central’ interfaces that can work with other applications. 
 
@@ -208,9 +206,9 @@ In many cases explicit AI as part of the interface will disappear and user exper
 
 One of the more robust examples I've seen is typedef[^20], which is a powerful query engine with LLM inference built in. I had the chance to test it and worked with their team to build a feature request prioritization pipeline for our product team. typedef was able to join across multiple tables in our warehouse to build context from support tickets, call transcripts, and product documents (PRDs, strategies), then automatically generate a priority with rationale when new feature request issues landed in Linear. In this case, both the AI and the complex data pipeline that gives it context are invisible to the end user triaging issues. 
 
-### Multi-modal interfaces
+### Multimodal interfaces
 
-I’m very interested to see if a single interface paradigm (beyond chat) emerges in the future. My hypothesis is that patterns will develop as we determine what works best, but the common thread will be multi-modal interfaces that pack a huge amount of complexity into workflows that feel far simpler, using the best form factor every step of the way. 
+I’m very interested to see if a single interface paradigm (beyond chat) emerges in the future. My hypothesis is that patterns will develop as we determine what works best, but the common thread will be multimodal interfaces that pack a huge amount of complexity into workflows that feel far simpler, using the best form factor every step of the way. 
 
 One of the best engineers I’ve ever worked with articulated this concept well: 
 
@@ -222,7 +220,7 @@ One of the best engineers I’ve ever worked with articulated this concept well:
 
 [^1]: You can watch the full discussion with Naveen Rao (Databricks) and George Matthew (Insight Ventures) [on YouTube](https://youtu.be/KvZ8F9-yrU4?t=2246) (link is timestamped to the quote I pulled). Both panelists share helpful front-line insight into the AI technology landscape. 
 
-[^2]: Evans’ [post on AI adoption](https://www.ben-evans.com/benedictevans/2025/5/25/genais-adoption-puzzle?utm_source=ericdoddsdotcom) is fascinating. Only 5-15% of people use AI everyday and most use it once a week. 
+[^2]: Evans’ [post on AI adoption](https://www.ben-evans.com/benedictevans/2025/5/25/genais-adoption-puzzle?utm_source=ericdoddsdotcom) is fascinating. Only 5-15% of people use AI every day and most use it once a week. 
 
 [^3]: Evan’s [post on AI metrics](https://www.ben-evans.com/benedictevans/2025/6/9/generative-ais-metrics-question?utm_source=ericdoddsdotcom) explores the limitations of measuring AI at such an early stage and looks back on the internet and smartphones to point out that we likely don’t know the right questions to ask yet. 
 
@@ -240,9 +238,9 @@ One of the best engineers I’ve ever worked with articulated this concept well:
 
 [^10]: You can read about the mind-blowing cost of AI and how much money companies are losing on [Where’s Your Ed](https://www.wheresyoured.at/why-everybody-is-losing-money-on-ai/?utm_source=ericdoddsdotcom).
 
-[^11]: Sam Altman [confirmed on X](https://x.com/sama/status/1912646035979239430) that when users say “thank you,” it costs tens of millions of dollars. 
+[^11]: Sam Altman [noted on X](https://x.com/sama/status/1912646035979239430) that “thank you” messages can cost tens of millions of dollars at scale. 
 
-[^12]: [OpenAI’s report](https://openai.com/index/how-people-are-using-chatgpt/?utm_source=ericdoddsdotcom) on how people use ChatGPT confirms that search, what they call “asking” tasks, is the primary use cases. 
+[^12]: [OpenAI’s report](https://openai.com/index/how-people-are-using-chatgpt/?utm_source=ericdoddsdotcom) on how people use ChatGPT confirms that search, what they call “asking” tasks, is the primary use case. 
 
 [^13]: You can read about Linear’s Cursor background agents [on their changelog](https://linear.app/changelog/2025-08-21-cursor-agent?utm_source=ericdoddsdotcom). 
 
