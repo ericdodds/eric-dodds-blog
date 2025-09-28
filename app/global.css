@@ -197,6 +197,14 @@ table {
   background: #f9fafb;
 }
 
+@media (prefers-color-scheme: dark) {
+  .prose blockquote {
+    border-left-color: #4b5563;
+    color: #d1d5db;
+    background: #1f2937;
+  }
+}
+
 .prose ul + img,
 .prose ol + img {
   margin-top: 1.5rem;
