@@ -1,6 +1,8 @@
 import fs from 'fs'
 import path from 'path'
 
+const GITHUB_BASE_URL = 'https://github.com/ericdodds/eric-dodds-blog/commits/main'
+
 type Metadata = {
   title: string
   publishedAt: string
@@ -8,6 +10,8 @@ type Metadata = {
   image?: string
   published?: string | boolean
   draft?: string | boolean
+  githubPath?: string
+  aiTranscriptUrl?: string
 }
 
 function parseFrontmatter(fileContent: string) {
@@ -44,7 +48,11 @@ function getMDXData(dir) {
     let slug = path.basename(file, path.extname(file))
 
     return {
-      metadata,
+      metadata: {
+        ...metadata,
+        // Auto-generate GitHub path if not specified
+        githubPath: metadata.githubPath || file
+      },
       slug,
       content,
     }
@@ -55,6 +63,8 @@ export function getBlogPosts() {
   return getMDXData(path.join(process.cwd(), 'app', 'blog', 'posts'))
     .filter(post => post.metadata.published !== 'false' && post.metadata.published !== false && post.metadata.draft !== 'true' && post.metadata.draft !== true);
 }
+
+export { GITHUB_BASE_URL }
 
 export function formatDate(date: string, includeRelative = false) {
   let currentDate = new Date()
