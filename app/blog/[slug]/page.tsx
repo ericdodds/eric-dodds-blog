@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { formatDate, getBlogPosts } from 'app/blog/utils'
+import { formatDate, getBlogPosts, GITHUB_BASE_URL } from 'app/blog/utils'
 import { baseUrl } from 'app/sitemap'
 import ImageModalEnhancer from 'app/components/ImageModalEnhancer'
 import { MDXRemote } from 'next-mdx-remote/rsc'
@@ -79,6 +79,39 @@ export default async function Blog({ params }) {
     notFound()
   }
 
+  const componentsWithGitHub = {
+    ...components,
+    GitHubLink: () => (
+      <div className="mt-6">
+        <p className="text-sm text-neutral-600 dark:text-neutral-400">
+          View the commit history for this post on{' '}
+          <a
+            href={`${GITHUB_BASE_URL}/app/blog/posts/${post.metadata.githubPath}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors"
+          >
+            GitHub
+          </a>
+          {post.metadata.aiTranscriptUrl && (
+            <>
+              {' '}or read the{' '}
+              <a
+                href={post.metadata.aiTranscriptUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors"
+              >
+                AI chat transcript
+              </a>
+              {' '}from the editing process.
+            </>
+          )}
+        </p>
+      </div>
+    ),
+  }
+
   return (
     <section>
       <script
@@ -116,7 +149,7 @@ export default async function Blog({ params }) {
           <ImageModalEnhancer>
             {await MDXRemote({
               source: post.content,
-              components,
+              components: componentsWithGitHub,
               options: {
                 mdxOptions: {
                   remarkPlugins: [remarkGfm],
