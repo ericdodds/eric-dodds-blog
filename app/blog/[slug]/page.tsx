@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { formatDate, getBlogPosts, GITHUB_BASE_URL } from 'app/blog/utils'
 import { baseUrl } from 'app/sitemap'
 import ImageModalEnhancer from 'app/components/ImageModalEnhancer'
+import SummarizeButton from 'app/components/SummarizeButton'
 import { MDXRemote } from 'next-mdx-remote/rsc'
 import remarkGfm from 'remark-gfm'
 import rehypeSlug from 'rehype-slug'
@@ -139,27 +140,30 @@ export default async function Blog({ params }) {
       <h1 className="title font-semibold text-2xl tracking-tighter">
         {post.metadata.title}
       </h1>
-      <div className="flex justify-between items-center mt-2 mb-8 text-sm">
+      <div className="flex justify-between items-center mt-2 mb-4 text-sm">
         <p className="text-sm text-neutral-600 dark:text-neutral-400">
           {formatDate(post.metadata.publishedAt)}
         </p>
+        <div>
+          <SummarizeButton content={post.content} title={post.metadata.title} />
+        </div>
       </div>
       <article className="prose">
-        <div className="blog-content">
-          <ImageModalEnhancer>
-            {await MDXRemote({
-              source: post.content,
-              components: componentsWithGitHub,
-              options: {
-                mdxOptions: {
-                  remarkPlugins: [remarkGfm],
-                  rehypePlugins: [rehypeSlug],
+          <div className="blog-content">
+            <ImageModalEnhancer>
+              {await MDXRemote({
+                source: post.content,
+                components: componentsWithGitHub,
+                options: {
+                  mdxOptions: {
+                    remarkPlugins: [remarkGfm],
+                    rehypePlugins: [rehypeSlug],
+                  },
                 },
-              },
-            })}
-          </ImageModalEnhancer>
-        </div>
-      </article>
+              })}
+            </ImageModalEnhancer>
+          </div>
+        </article>
     </section>
   )
 }
