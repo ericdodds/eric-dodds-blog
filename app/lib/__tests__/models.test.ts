@@ -1,4 +1,4 @@
-import { MODELS, getModelById, getModelByProvider } from '../models'
+import { MODELS, getModelById, getModelByProvider } from '../models.tsx'
 
 describe('Model Registry', () => {
   test('should have all expected providers', () => {
