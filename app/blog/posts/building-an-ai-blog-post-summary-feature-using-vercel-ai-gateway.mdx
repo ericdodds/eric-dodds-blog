@@ -5,7 +5,7 @@ summary: 'How I used Vercel's AI SDK and AI Gateway to build a model-selectable 
 categories: ['Nerdery', 'AI']
 ---
 
-After writing a [4,000 word post][^1] about the future of the AI interface, I asked a friend for feedback. After sending it, I realized it was a long read and thought they would appreciate an easy way to summarize the post before digging in—so I decided to build a simple AI summary feature using Vercel's AI tools. 
+After writing a 4,000 word post[^1] about the future of the AI interface, I asked a friend for feedback. After sending it, I realized it was a long read and thought they would appreciate an easy way to summarize the post before digging in—so I decided to build a simple AI summary feature using Vercel's AI tools. 
 
 I had been itching to try Vercel’s AI SDK on a real use case, and this was a perfect opportunity. The initial implementation was so smooth that I shipped version 1 in under 30 minutes—including multiple interruptions from my kids. But when I showed it to a friend, their immediate response was, “why can't I choose which model generates the summary?"
 
@@ -17,11 +17,23 @@ Here’s a breakdown of the build process:
 
 ![AI Blog Post Summary v1](/images/blog/ai-blog-post-summary-feature/ai-blog-post-summary-v1.gif)
 
-The beauty of Vercel's AI SDK is how it abstracts away the complexity of working with AI models. I followed their [Next.js guide][^2], grabbed a key from OpenAI, and fired off a test—which worked on the first try.
+The beauty of Vercel's AI SDK is how it abstracts away the complexity of working with AI models. I followed their Next.js guide[^2], grabbed a key from OpenAI, and fired off a test—which worked on the first try.
 
 The rest of my time was spent on the user experience details, which primarily consisted of getting the summary inserted into the DOM in the right place (at the top of the body content). 
 
 The entire implementation was maybe 50 lines of code[^3]. The AI SDK handled all the heavy lifting.
+
+Also, if you're interested, below is the system prompt I used, which includes a long-running bullet point I had to tweak multiple times to get the link list formatted correctly in HTML. Also of note, the system prompt is a simple configuration in the AI SDK. 
+
+> You are a helpful assistant that creates concise, engaging summaries of blog posts. 
+>      
+> Your summaries should:
+> - Be 2-3 sentences long
+> - Capture the main argument or key insights
+> - Be written in a clear, accessible tone
+> - Avoid jargon and technical terms when possible
+> - Focus on the value proposition for the reader
+> - Add an HTML unordered list `<ul>` of the top five most relevant links from the footnotes to the summary, with the anchor text from the footnote as the link text. Format links as HTML: <a href="URL" target="_blank" rel="noopener noreferrer">link text</a>. Place each link as a separate list item in the unordered list.The links should be a short, several-word summary of the link and context using the mention in the body content and the footnote text. In a new paragraph after the summary, add "Relevant links from the footnotes:" above the list. Do not format this as markdown.
 
 ## Version 2: implementing model selection with Vercel’s AI Gateway
 
