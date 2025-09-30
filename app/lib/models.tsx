@@ -45,7 +45,3 @@ export const MODELS: Record<string, ModelConfig> = {
 export const getModelById = (id: string): ModelConfig | undefined => {
   return Object.values(MODELS).find(model => model.id === id)
 }
-
-export const getModelByProvider = (provider: string): ModelConfig | undefined => {
-  return MODELS[provider.toLowerCase()]
-}

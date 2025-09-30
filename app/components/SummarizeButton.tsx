@@ -13,7 +13,7 @@ export default function SummarizeButton({ content, title }: SummarizeButtonProps
   const [error, setError] = useState<string | null>(null)
   const [hasGeneratedSummary, setHasGeneratedSummary] = useState(false)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-  const [selectedModel, setSelectedModel] = useState<string>('gpt-4o')
+  const [selectedModel, setSelectedModel] = useState<string>('openai/gpt-5')
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   // Close dropdown when clicking outside

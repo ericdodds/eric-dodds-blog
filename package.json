@@ -3,7 +3,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test": "npx tsx app/lib/__tests__/models.test.ts"
   },
   "dependencies": {
     "@ai-sdk/gateway": "^1.0.32",
