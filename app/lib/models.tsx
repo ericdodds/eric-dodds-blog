@@ -17,7 +17,7 @@ export const MODELS: Record<string, ModelConfig> = {
     logo: <OpenAI size={16} />
   },
   'anthropic': {
-    id: 'anthropic/claude-sonnet-4',
+    id: 'anthropic/claude-sonnet-4.5',
     name: 'Anthropic',
     provider: 'Anthropic',
     logo: <Claude size={16} />
@@ -44,8 +44,4 @@ export const MODELS: Record<string, ModelConfig> = {
 
 export const getModelById = (id: string): ModelConfig | undefined => {
   return Object.values(MODELS).find(model => model.id === id)
-}
-
-export const getModelByProvider = (provider: string): ModelConfig | undefined => {
-  return MODELS[provider.toLowerCase()]
 }
