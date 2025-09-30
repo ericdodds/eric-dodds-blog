@@ -1,0 +1,71 @@
+---
+title: 'Building an AI blog post summary feature with Vercel's AI Gateway'
+publishedAt: 2025-09-29
+summary: 'How I used Vercel's AI SDK and AI Gateway to build a model-selectable post summary feature for my blog'
+categories: ['Nerdery', 'AI']
+---
+
+After writing a [4,000 word post][^1] about the future of the AI interface, I asked a friend for feedback. After sending it, I realized it was a long read and thought they would appreciate an easy way to summarize the post before digging in—so I decided to build a simple AI summary feature using Vercel's AI tools. 
+
+I had been itching to try Vercel’s AI SDK on a real use case, and this was a perfect opportunity. The initial implementation was so smooth that I shipped version 1 in under 30 minutes—including multiple interruptions from my kids. But when I showed it to a friend, their immediate response was, “why can't I choose which model generates the summary?"
+
+That simple question led me down the rabbit hole of Vercel's AI Gateway, which is a truly incredible piece of developer infrastructure. 
+
+Here’s a breakdown of the build process: 
+
+## Version 1: the 30-minute MVP
+
+![AI Blog Post Summary v1](/images/blog/ai-blog-post-summary-feature/ai-blog-post-summary-v1.gif)
+
+The beauty of Vercel's AI SDK is how it abstracts away the complexity of working with AI models. I followed their [Next.js guide][^2], grabbed a key from OpenAI, and fired off a test—which worked on the first try.
+
+The rest of my time was spent on the user experience details, which primarily consisted of getting the summary inserted into the DOM in the right place (at the top of the body content). 
+
+The entire implementation was maybe 50 lines of code[^3]. The AI SDK handled all the heavy lifting.
+
+## Version 2: implementing model selection with Vercel’s AI Gateway
+
+![AI Blog Post Summary v2](/images/blog/ai-blog-post-summary-feature/ai-blog-post-summary-v2-vercel-ai-gateway-model-selection.png)
+
+After my friend Benji[^4] requested support for multiple models, I started by hard-coding one additional model from Anthropic. But then I realized the AI Gateway was designed for use cases exactly like multi-model selection.
+
+When I asked Cursor to build a plan for implementing it, it did a really bad job[^5]. I had to give it pretty explicit instructions based on what I'd read in the docs (the joys of vibe coding). 
+
+But once I realized where Cursor was tripping up, the implementation was dead simple. Actually, amazingly simple[^6]. 
+
+Instead of managing keys from multiple providers, I had Cursor build a basic registry with model IDs. When a user chooses a model, the ID is passed as a string in the API call to the gateway. 
+
+Beyond being able to access any model out of the box, the _really_ nice thing about the gateway is the observability. Having a dashboard with details about usage and cost is incredible—and would be a nightmare to manage across each individual platform. This was an exploratory hobbyist project, but having built a lot of product, I immediately sensed how useful this would be in production software. 
+
+![Vercel AI Gateway Observability](/images/blog/ai-blog-post-summary-feature/vercel-ai-gateway-observability.png)
+
+### Quick technical details
+
+The final implementation uses:
+- **AI SDK[^7]** for the core functionality
+- **AI Gateway[^8]** for model routing and observability
+- **LobeHub Icons[^9]** for beautiful model logos in the dropdown
+- **Tailwind CSS[^10]** for the UI (with a subtle pulsing animation)
+
+<GitHubLink />
+
+[^1]: [4,000 word post about the future of the AI interface](https://www.ericdodds.com/blog/ai-beyond-the-chat-interface)
+
+[^2]: [Vercel AI SDK Next.js guide](https://ai-sdk.dev/docs/getting-started/nextjs-app-router)
+
+[^3]: You can see the pull request for version 1 of the blog post summary feature in [my website's GitHub repo](https://github.com/ericdodds/eric-dodds-blog/pull/23). 
+
+[^4]: [Benji](https://www.linkedin.com/in/benjamin-walvoord-2b2b71a/) is the Head of GTM Systems at Vercel. 
+
+[^5]: You can see the full transcript from Cursor for the version 2 build [here](https://github.com/ericdodds/eric-dodds-blog/blob/main/public/ai-chat-transcripts/transcript-ai-blog-post-summary-feature-v2-vercel-ai-gateway.md). 
+
+[^6]: You can see the pull request for version 2 of the blog post summary feature [my website's GitHub repo](https://github.com/ericdodds/eric-dodds-blog/pull/24).
+
+[^7]: [Vercel AI SDK](https://ai-sdk.dev/) - The AI Toolkit for TypeScript that makes it easy to integrate AI models into your applications.
+
+[^8]: [Vercel AI Gateway](https://vercel.com/docs/ai-gateway) - A unified interface for accessing multiple AI models with built-in observability and cost tracking.
+
+[^9]: [LobeHub Icons](https://lobehub.com/icons) - A comprehensive collection of AI/LLM model icons for React applications.
+
+[^10]: [Tailwind CSS](https://tailwindcss.com/) - A utility-first CSS framework for rapidly building custom user interfaces. 
+
