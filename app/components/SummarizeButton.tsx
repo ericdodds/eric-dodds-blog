@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { MODELS } from '../lib/models'
 
 interface SummarizeButtonProps {
   content: string
@@ -11,10 +12,28 @@ export default function SummarizeButton({ content, title }: SummarizeButtonProps
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [hasGeneratedSummary, setHasGeneratedSummary] = useState(false)
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [selectedModel, setSelectedModel] = useState<string>('gpt-4o')
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
-  const handleSummarize = async () => {
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
+
+  const handleSummarize = async (modelId: string) => {
     setIsLoading(true)
     setError(null)
+    setIsDropdownOpen(false)
     
     try {
       const response = await fetch('/api/summarize', {
@@ -22,7 +41,7 @@ export default function SummarizeButton({ content, title }: SummarizeButtonProps
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ content, title }),
+        body: JSON.stringify({ content, title, model: modelId }),
       })
 
       if (!response.ok) {
@@ -96,13 +115,46 @@ export default function SummarizeButton({ content, title }: SummarizeButtonProps
           Remember, AI can hallucinate!
         </p>
       ) : (
-        <button
-          onClick={handleSummarize}
-          disabled={isLoading}
-          className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isLoading ? 'Generating summary...' : 'Summarize with AI'}
-        </button>
+        <div className="relative inline-block" ref={dropdownRef}>
+          <button
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            disabled={isLoading}
+            className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+          >
+            {isLoading ? (
+              <span className="animate-pulse">Generating summary...</span>
+            ) : (
+              'Summarize with AI'
+            )}
+            {!isLoading && (
+              <svg 
+                className={`w-3 h-3 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            )}
+          </button>
+          
+          {isDropdownOpen && !isLoading && (
+            <div className="absolute top-full left-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 z-10">
+              <div className="py-1">
+                {Object.entries(MODELS).map(([key, model]) => (
+                  <button
+                    key={key}
+                    onClick={() => handleSummarize(model.id)}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3"
+                  >
+                    <span className="text-lg">{model.logo}</span>
+                    <span>{model.name}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       )}
       {error && (
         <p className="mt-2 text-sm text-red-600 dark:text-red-400">
