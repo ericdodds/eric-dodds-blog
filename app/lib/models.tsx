@@ -17,7 +17,7 @@ export const MODELS: Record<string, ModelConfig> = {
     logo: <OpenAI size={16} />
   },
   'anthropic': {
-    id: 'anthropic/claude-sonnet-4',
+    id: 'anthropic/claude-sonnet-4.5',
     name: 'Anthropic',
     provider: 'Anthropic',
     logo: <Claude size={16} />
