@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import DOMPurify from 'dompurify'
 import { MODELS } from '../lib/models'
 
 interface SummarizeButtonProps {
@@ -69,6 +70,12 @@ export default function SummarizeButton({ content, title }: SummarizeButtonProps
       existingSummary.remove()
     }
 
+    // Sanitize the AI-generated HTML content to prevent XSS attacks
+    const sanitizedSummary = DOMPurify.sanitize(summary, {
+      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'blockquote', 'code', 'pre'],
+      ALLOWED_ATTR: ['class']
+    })
+
     // Create summary element
     const summaryElement = document.createElement('div')
     summaryElement.id = 'ai-summary-container'
@@ -77,7 +84,7 @@ export default function SummarizeButton({ content, title }: SummarizeButtonProps
     summaryElement.innerHTML = `
       <h3 class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">AI Summary</h3>
       <div class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed prose prose-sm max-w-none">
-        ${summary}
+        ${sanitizedSummary}
       </div>
       <!-- <button class="mt-2 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors" id="hide-summary-btn">Hide summary</button> -->
     `
