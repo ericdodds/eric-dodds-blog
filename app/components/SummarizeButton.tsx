@@ -72,8 +72,8 @@ export default function SummarizeButton({ content, title }: SummarizeButtonProps
 
     // Sanitize the AI-generated HTML content to prevent XSS attacks
     const sanitizedSummary = DOMPurify.sanitize(summary, {
-      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'blockquote', 'code', 'pre'],
-      ALLOWED_ATTR: ['class']
+      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'blockquote', 'code', 'pre', 'a'],
+      ALLOWED_ATTR: ['class', 'href', 'target', 'rel']
     })
 
     // Create summary element
