@@ -12,13 +12,17 @@ export default function AboutPage() {
       <div className="prose mt-8">
         <h3 className="title font-semibold text-xl tracking-tighter">Professional bio</h3>
         <p>
-          I'm currently the Head of Product at RudderStack, a pipeline infrastructure company that streams behavioral event data. 
+        Here's the obligatory <a href="https://www.linkedin.com/in/ericdodds/" target="_blank" rel="noopener noreferrer">LinkedIn profile</a>.
+        </p>
+        
+        <p>
+          I'm currently on the technical marketing team at <a href="https://vercel.com" target="_blank" rel="noopener noreferrer">Vercel</a>, an AI cloud and frontend deployment platform. You can read my blog post about joining Vercel <a href="https://www.ericdodds.com/blog/im-joining-vercel-after-5-years-at-rudderstack" target="_blank" rel="noopener noreferrer">here</a>.
         </p>
         <p>
-          I've founded multiple businesses, both venture-backed and bootstrapped. Several companies failed, one exited and one is still running under new ownership. 
+          My previous role was Head of Product at RudderStack, a pipeline infrastructure company that streams behavioral event data. I've also founded multiple businesses, both venture-backed and bootstrapped. Several companies failed, one exited and one is still running under new ownership. 
         </p>
         <p>
-          Over the years I've held key go-to-market roles with a focus on marketing, but have found the most joy working close to and in product. I particularly enjoy tackling the XY problem, working directly with engineers and driving growth through product marketing. 
+          Over the years I've held key go-to-market roles with a focus on marketing. I find great joy working close to and in product. I particularly enjoy tackling the XY problem, working directly with engineers and driving growth through product marketing. 
        </p>
        <p>
           I've proven my ability to take functions from 0-1 (and beyond) as a player-coach, build teams and ship work as an individual contributor. I function well in ambiguity.
