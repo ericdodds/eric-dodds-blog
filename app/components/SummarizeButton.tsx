@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import DOMPurify from 'dompurify'
 import { MODELS } from '../lib/models'
 
 interface SummarizeButtonProps {
@@ -69,18 +70,21 @@ export default function SummarizeButton({ content, title }: SummarizeButtonProps
       existingSummary.remove()
     }
 
+    // Sanitize the AI-generated HTML content to prevent XSS attacks
+    const sanitizedSummary = DOMPurify.sanitize(summary, {
+      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'blockquote', 'code', 'pre', 'a'],
+      ALLOWED_ATTR: ['class', 'href', 'target', 'rel']
+    })
+
     // Create summary element
     const summaryElement = document.createElement('div')
     summaryElement.id = 'ai-summary-container'
     summaryElement.className = 'mt-4 mb-8 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border'
     
-    // Simple markdown to HTML conversion for links
-    const htmlSummary = summary.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-blue-600 dark:text-blue-400 hover:underline">$1</a>')
-    
     summaryElement.innerHTML = `
       <h3 class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">AI Summary</h3>
       <div class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed prose prose-sm max-w-none">
-        ${htmlSummary}
+        ${sanitizedSummary}
       </div>
       <!-- <button class="mt-2 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors" id="hide-summary-btn">Hide summary</button> -->
     `
