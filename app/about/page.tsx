@@ -16,7 +16,7 @@ export default function AboutPage() {
         </p>
         
         <p>
-          I'm currently on the technical marketing team at <a href="https://vercel.com" target="_blank" rel="noopener noreferrer">Vercel</a>, an AI cloud and frontend deployment platform. You can read my blog post about joining Vercel <a href="https://www.ericdodds.com/blog/im-joining-vercel-after-5-years-at-rudderstack" target="_blank" rel="noopener noreferrer">here</a>.
+          I'm currently on the technical marketing team at <a href="https://vercel.com" target="_blank" rel="noopener noreferrer">Vercel</a>, an AI and frontend cloud platform. You can read my blog post about joining Vercel <a href="https://www.ericdodds.com/blog/im-joining-vercel-after-5-years-at-rudderstack" target="_blank" rel="noopener noreferrer">here</a>.
         </p>
         <p>
           My previous role was Head of Product at RudderStack, a pipeline infrastructure company that streams behavioral event data. I've also founded multiple businesses, both venture-backed and bootstrapped. Several companies failed, one exited and one is still running under new ownership. 
@@ -30,17 +30,6 @@ export default function AboutPage() {
        <p>
           I've mastered a variety of tactical skills across product, marketing, product marketing, data/analytics and have built efficient operations in each of those areas. In another life I would have been a software engineer, so the age of AI is a true dream as a technical tinkerer. 
        </p>
-       <p>
-        My recent focus areas as a product leader have been:
-       </p>
-
-          <ul>
-              <li>Sharpening my ability to help run an EPD org across multiple international cultures and timezones</li>
-              <li>Building out a develeper experience strategy to enable centralized IAC for programmatic management of the platform</li>
-              <li>Integrating AI tooling into our product development process</li>
-              <li>Helping shape the AI strategy and roadmap for our product</li>
-          </ul>
-
        <p>
           My peers describe my superpowers as first-principles thinking, product-mindedness and writing (of all kinds). On multiple occasions these have been applied in the formation of strategies, both on a micro and macro level.
        </p>
