@@ -1,6 +1,6 @@
 # Eric Dodds Weblog
 
-This is my personal website. It hosts my blog posts, tells readers a bit about me and had a contact form for people who want to reach out. 
+This is my personal website. It hosts my blog posts, tells readers a bit about me and have a contact form for people who want to reach out. 
 
 ## Migration from WordPress
 
