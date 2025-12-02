@@ -71,7 +71,6 @@ export default function ImageModalEnhancer({ children }) {
               maxWidth: '90vw',
               maxHeight: '90vh',
               boxShadow: '0 2px 16px rgba(0,0,0,0.5)',
-              background: 'white',
             }}
             alt=""
             onClick={e => e.stopPropagation()}
