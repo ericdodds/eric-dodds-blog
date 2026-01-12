@@ -10,6 +10,9 @@ const navItems = {
   '/about': {
     name: 'about',
   },
+  '/subscribe': {
+    name: 'subscribe',
+  },
   '/contact': {
     name: 'contact',
   },
