@@ -72,6 +72,20 @@ const components = {
   YouTube,
 }
 
+function injectSubscribeBeforeFootnotes(content: string): string {
+  // Find the first footnote definition (e.g., [^1]:)
+  const footnoteRegex = /\n\[(\^[^\]]+)\]:/
+  const match = content.match(footnoteRegex)
+  
+  if (match && match.index !== undefined) {
+    // Insert SubscribeEmbed before the first footnote
+    return content.slice(0, match.index) + '\n\n<SubscribeEmbed />\n' + content.slice(match.index)
+  }
+  
+  // If no footnotes found, append at the end
+  return content + '\n\n<SubscribeEmbed />\n'
+}
+
 export default async function Blog({ params }) {
   const { slug } = await params
   let post = getBlogPosts().find((post) => post.slug === slug)
@@ -79,9 +93,29 @@ export default async function Blog({ params }) {
   if (!post) {
     notFound()
   }
+  
+  // Inject SubscribeEmbed before footnotes
+  const contentWithSubscribe = injectSubscribeBeforeFootnotes(post.content)
 
   const componentsWithGitHub = {
     ...components,
+    SubscribeEmbed: () => (
+      <div className="my-8">
+        <hr className="mb-8 border-neutral-200 dark:border-neutral-800" />
+        <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4 text-center">Join almost 3,000 subscribers via Substack to get notified about new posts.</p>
+        <div className="flex justify-center mb-8">
+          <iframe 
+            src="https://ericdodds.substack.com/embed" 
+            width="480" 
+            height="150" 
+            style={{ background: 'white' }}
+            frameBorder="0" 
+            scrolling="no"
+            className="w-full max-w-[480px]"
+          />
+        </div>
+      </div>
+    ),
     GitHubLink: () => (
       <div className="mt-6">
         <p className="text-sm text-neutral-600 dark:text-neutral-400">
@@ -152,7 +186,7 @@ export default async function Blog({ params }) {
           <div className="blog-content">
             <ImageModalEnhancer>
               {await MDXRemote({
-                source: post.content,
+                source: contentWithSubscribe,
                 components: componentsWithGitHub,
                 options: {
                   mdxOptions: {
