@@ -43,14 +43,17 @@ export default function AboutPage() {
       <div className="prose mt-8">
         <h3 className="title font-semibold text-xl tracking-tighter">Writing</h3>
         <p>
-         I have considered a career in writing, which may happen in the future, but I truly enjoy product work and it gives me the opportunity to practice the craft of writing almost every day. 
+         <s>I have considered a career in writing, which may happen in the future, but I truly enjoy product work and it gives me the opportunity to practice the craft of writing almost every day.</s>  
         </p>
         <p>
+          When I updated this bio in the summer of 2025, I was still looking for a job in product, but as it happened I had the opportunity to try my hand at professional writing sooner than I expected.
+        </p>
+        <p>
+         Professionally I have written technical documentation and tutorials, books on technical topics (one published), UX copy, internal strategy memos, technical blog posts, thought leadership pieces, web copy, advertising copy, enterprise product marketing collateral, scripts (audio and video) and more. Personally I write this blog and have written one short biography (also published).
+       </p>
+       <p>
          This blog went stale for some time, but I wrote an immense amount in that time, both personally and professionally (including a published memoir about my special needs brother-in-law). 
         </p>
-        <p>
-         Professionally, I have written technical documentation and tutorials, books on technical topics (one published), UX copy, internal strategy memos, technical blog posts, thought leadership pieces, web copy, advertising copy, enterprise product marketing collateral, and more. Leading a product function, much of the content I create today is internal in the form of product strategies, PRDs, technical requirements and draft documentation.
-       </p>
       </div>
       <div className="prose mt-8">
         <h3 className="title font-semibold text-xl tracking-tighter">Personal bio</h3>
