@@ -65,7 +65,7 @@ const components = {
   h4: (props) => <h4 {...props} />,
   h5: (props) => <h5 {...props} />,
   h6: (props) => <h6 {...props} />,
-  Image: (props) => <Image {...props} />,
+  Image: (props) => <Image {...props} width={Number(props.width) || 800} height={Number(props.height) || 600} />,
   a: (props) => <a {...props} />,
   code: (props) => <code {...props} />,
   Table: (props) => <table {...props} />,

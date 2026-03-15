@@ -23,6 +23,7 @@ export const metadata: Metadata = {
     locale: 'en_US',
     type: 'website',
   },
+  other: { 'markdown-available': 'Request with Accept: text/markdown' },
   robots: {
     index: true,
     follow: true,
