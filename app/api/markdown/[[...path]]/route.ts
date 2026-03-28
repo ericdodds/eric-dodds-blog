@@ -1,5 +1,6 @@
 import { getBlogPosts, formatDate } from 'app/blog/utils'
 import { mdxToMarkdown } from 'app/blog/mdx-to-markdown'
+import { getNotes, getNoteByNumber } from 'app/lib/github-notes'
 import { baseUrl } from 'app/sitemap'
 
 const CONTACT_FORM_URL = 'https://usebasin.com/f/26f1a0ed87e5'
@@ -29,7 +30,7 @@ export async function GET(
 
 My name is Eric Dodds. I'm a Christian, husband, father, writer and tech marketing leader, ideally in that order.
 
-This is my corner of the internet. You can read my [writing](${baseUrl}/blog), learn more [about me](${baseUrl}/about) or [reach out](${baseUrl}/contact) to say hello.
+This is my corner of the internet. You can read my [writing](${baseUrl}/blog), browse [notes](${baseUrl}/notes), learn more [about me](${baseUrl}/about) or [reach out](${baseUrl}/contact) to say hello.
 
 ## Recent blog posts
 
@@ -68,6 +69,44 @@ ${postList}
     markdown = `# ${post.metadata.title}
 
 ${formatDate(post.metadata.publishedAt)}
+
+---
+
+${body}
+`
+  } else if (pathStr === 'notes') {
+    const notes = await getNotes()
+    const noteList = notes
+      .map(
+        (n) =>
+          `- [${n.title}](${baseUrl}/notes/${n.number}) - ${formatDate(n.created_at)}`
+      )
+      .join('\n')
+
+    markdown = `# Notes
+
+Short posts from GitHub Issues. Request any note URL with \`Accept: text/markdown\` for markdown.
+
+## Notes
+
+${noteList || '_No notes yet._'}
+`
+  } else if (pathStr.startsWith('notes/')) {
+    const raw = pathStr.slice(6)
+    const num = Number(raw)
+    if (!Number.isFinite(num) || String(num) !== raw) {
+      return new Response('Not found', { status: 404 })
+    }
+    const note = await getNoteByNumber(num)
+    if (!note) {
+      return new Response('Not found', { status: 404 })
+    }
+    const body = mdxToMarkdown(note.body || '')
+    markdown = `# ${note.title}
+
+${formatDate(note.created_at)}
+
+[View on GitHub](${note.html_url})
 
 ---
 
