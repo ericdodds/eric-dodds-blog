@@ -1,4 +1,4 @@
-import { revalidateTag } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { createHmac, timingSafeEqual } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import {
@@ -93,10 +93,24 @@ export async function POST(request: Request) {
   const expectedRepo = process.env.NOTES_GITHUB_REPO?.trim().toLowerCase()
   const actualRepo = payload.repository?.full_name?.toLowerCase()
   if (expectedRepo && actualRepo && actualRepo !== expectedRepo) {
+    console.warn('[revalidate-notes] ignored webhook: repository mismatch', {
+      expected: expectedRepo,
+      actual: actualRepo,
+    })
     return NextResponse.json({ ok: true, ignored: 'repository mismatch' })
   }
 
   revalidateTag(GITHUB_NOTES_CACHE_TAG, 'default')
+  revalidatePath('/notes')
+  const n = payload.issue?.number
+  if (typeof n === 'number' && Number.isFinite(n)) {
+    revalidatePath(`/notes/${n}`)
+  }
+  console.log('[revalidate-notes] cache cleared for /notes', {
+    action: payload.action,
+    issue: n,
+    repo: actualRepo,
+  })
 
   let typefully_synced = false
   let typefully_error: string | undefined
