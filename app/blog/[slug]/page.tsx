@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
 import { formatDate, getBlogPosts, GITHUB_BASE_URL } from 'app/blog/utils'
 import { baseUrl } from 'app/sitemap'
 import ImageModalEnhancer from 'app/components/ImageModalEnhancer'
@@ -177,6 +178,15 @@ export default async function Blog({ params }) {
       <div className="flex justify-between items-center mt-2 mb-4 text-sm">
         <p className="text-sm text-neutral-600 dark:text-neutral-400">
           {formatDate(post.metadata.publishedAt)}
+          <span aria-hidden className="mx-1.5 text-neutral-400 dark:text-neutral-500">
+            ·
+          </span>
+          <Link
+            href="/"
+            className="hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors"
+          >
+            Eric Dodds Weblog
+          </Link>
         </p>
         <div>
           <SummarizeButton content={post.content} title={post.metadata.title} />

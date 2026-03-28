@@ -10,8 +10,8 @@ const navItems = {
   '/about': {
     name: 'about',
   },
-  '/subscribe': {
-    name: 'subscribe',
+  'https://tokenintelligenceshow.substack.com/': {
+    name: 'podcast',
   },
   '/contact': {
     name: 'contact',
