@@ -1,6 +1,15 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'user-images.githubusercontent.com',
+        pathname: '/**',
+      },
+    ],
+  },
   async rewrites() {
     return {
       beforeFiles: [
@@ -11,6 +20,8 @@ const nextConfig: NextConfig = {
         { source: '/about.md', destination: '/api/markdown/about' },
         { source: '/contact.md', destination: '/api/markdown/contact' },
         { source: '/subscribe.md', destination: '/api/markdown/subscribe' },
+        { source: '/notes/:number.md', destination: '/api/markdown/notes/:number' },
+        { source: '/notes.md', destination: '/api/markdown/notes' },
         // Accept: text/markdown triggers markdown for any path
         {
           source: '/:path*',
