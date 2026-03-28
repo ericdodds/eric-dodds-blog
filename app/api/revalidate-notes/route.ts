@@ -34,10 +34,11 @@ function verifyGitHubSignature(
 }
 
 /**
- * After cache refresh, push when the issue is a “published” note — same rules as /notes.
- * Content always comes from `getNoteByNumber` (see push-note-to-typefully), not raw webhook fields.
+ * One Typefully draft when the note first becomes visible on the site — same rules as /notes.
+ * Uses `opened` / `reopened` / `labeled` (publish label only) only; GitHub `edited` does not
+ * sync (further edits are meant to happen in Typefully). Content comes from `getNoteByNumber`.
  */
-function shouldPushTypefullyAfterPublish(
+function shouldPushTypefullyOnInitialPublish(
   payload: GitHubIssuesPayload
 ): payload is GitHubIssuesPayload & { issue: GitHubWebhookIssue } {
   if (!process.env.TYPEFULLY_API_KEY?.trim() || !process.env.TYPEFULLY_SOCIAL_SET_ID?.trim()) {
@@ -67,8 +68,9 @@ function shouldPushTypefullyAfterPublish(
 }
 
 /**
- * GitHub webhook: revalidate notes cache, then Typefully when a note is published.
- * Manual/backfill: POST /api/sync-typefully with TYPEFULLY_SYNC_SECRET.
+ * GitHub webhook: revalidate notes cache, then a single Typefully draft on initial publish
+ * (opened / reopened / labeled per `shouldPushTypefullyOnInitialPublish`). Manual/backfill:
+ * POST /api/sync-typefully with TYPEFULLY_SYNC_SECRET.
  */
 export async function POST(request: Request) {
   const secret = process.env.GITHUB_WEBHOOK_SECRET
@@ -116,7 +118,7 @@ export async function POST(request: Request) {
   let typefully_error: string | undefined
   let typefully_skip: string | undefined
 
-  if (shouldPushTypefullyAfterPublish(payload)) {
+  if (shouldPushTypefullyOnInitialPublish(payload)) {
     const push = await pushPublishedNoteToTypefully(payload.issue.number)
     if (push.ran && push.ok) {
       typefully_synced = true
@@ -127,6 +129,17 @@ export async function POST(request: Request) {
     } else if (!push.ran && push.reason === 'note_not_found') {
       typefully_skip = 'note_not_visible_after_revalidate'
     }
+  } else if (
+    process.env.TYPEFULLY_API_KEY?.trim() &&
+    process.env.TYPEFULLY_SOCIAL_SET_ID?.trim() &&
+    payload.issue &&
+    ['opened', 'reopened', 'labeled'].includes(payload.action)
+  ) {
+    console.log('[typefully] skipped initial publish push', {
+      action: payload.action,
+      issue: payload.issue.number,
+      noteVisible: issueIsVisibleAsNote(payload.issue),
+    })
   }
 
   return NextResponse.json({

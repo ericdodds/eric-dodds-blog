@@ -16,16 +16,23 @@ export default function Page() {
           href="/blog"
           className="underline transition-all decoration-neutral-400 dark:decoration-neutral-600 underline-offset-2 decoration-[0.1em]"
         >
-          writing
+          long-form writing
         </Link>
-        , learn more{' '}
+        , browse thoughts in my{' '}
+        <Link
+          href="/notes"
+          className="underline transition-all decoration-neutral-400 dark:decoration-neutral-600 underline-offset-2 decoration-[0.1em]"
+        >
+          notebook
+        </Link>
+        ,{' '}
         <Link
           href="/about"
           className="underline transition-all decoration-neutral-400 dark:decoration-neutral-600 underline-offset-2 decoration-[0.1em]"
         >
-          about me
+          learn more about me
         </Link>
-        {' '}or{' '}
+        , or{' '}
         <Link
           href="/contact"
           className="underline transition-all decoration-neutral-400 dark:decoration-neutral-600 underline-offset-2 decoration-[0.1em]"

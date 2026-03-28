@@ -219,10 +219,16 @@ export async function createTypefullyDraftFromIssue(
     return { ok: false, reason: `Typefully ${res.status}: ${errText.slice(0, 500)}` }
   }
 
-  const created = (await res.json()) as { id?: number; private_url?: string }
-  if (created.id == null) {
+  const created = (await res.json()) as {
+    id?: number
+    /** Deprecated field; some responses may only include this */
+    draft_id?: number
+    private_url?: string
+  }
+  const draftId = created.id ?? created.draft_id
+  if (draftId == null) {
     return { ok: false, reason: 'Typefully response missing draft id' }
   }
 
-  return { ok: true, draftId: created.id, privateUrl: created.private_url }
+  return { ok: true, draftId, privateUrl: created.private_url }
 }
