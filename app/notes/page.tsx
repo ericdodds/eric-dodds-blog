@@ -28,7 +28,7 @@ export default async function NotesPage() {
 
   return (
     <section>
-      <h1 className="font-semibold text-2xl mb-8 tracking-tighter">Notes</h1>
+      <h1 className="font-semibold text-2xl mb-8 tracking-tighter">Eric Dodds Notebook</h1>
       {missingConfig ? (
         <p className="text-neutral-600 dark:text-neutral-400 text-sm">
           Notes are not configured. Set <code className="text-xs">NOTES_GITHUB_REPO</code> and{' '}
