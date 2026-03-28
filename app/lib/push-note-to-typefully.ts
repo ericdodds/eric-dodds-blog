@@ -8,7 +8,8 @@ export type PushNoteToTypefullyResult =
 
 /**
  * Load the note the same way /notes does, then create a Typefully draft.
- * Use `bypassDataCache` on read so a webhook right after an edit sees fresh GitHub data.
+ * Webhook invokes this only on initial note visibility (opened / reopened / labeled).
+ * Use `bypassDataCache` so the draft matches GitHub right after the event.
  */
 export async function pushPublishedNoteToTypefully(
   issueNumber: number
