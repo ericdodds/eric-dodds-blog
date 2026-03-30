@@ -79,3 +79,14 @@ export function mergeSocialBlockIntoIssueBody(
   const sep = body.endsWith('\n') || body.length === 0 ? '' : '\n\n'
   return `${body}${sep}${newBlock.trim()}\n`
 }
+
+/**
+ * MDX treats `<` as JSX; raw `<!-- ... -->` in issue bodies can crash compile.
+ * Strip only the bot-managed markers; leave "**Also on social**" markdown intact.
+ */
+export function stripTypefullySocialHtmlCommentsForMdx(markdown: string): string {
+  return markdown
+    .replace(/<!--\s*note-social:start\s*-->/gi, '')
+    .replace(/<!--\s*note-social:end\s*-->/gi, '')
+    .replace(/<!--\s*typefully-draft:\d+\s*-->/gi, '')
+}

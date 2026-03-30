@@ -1,4 +1,5 @@
 import { cache } from 'react'
+import { stripTypefullySocialHtmlCommentsForMdx } from 'app/lib/note-social-block'
 import { GITHUB_NOTES_CACHE_TAG, getNotesGitHubRepo } from 'app/lib/github-notes'
 
 const USER_ATTACHMENTS = 'github.com/user-attachments/assets/'
@@ -117,9 +118,10 @@ export async function resolveNoteBodyWithIssueHtml(
   body: string | null,
   issueNumber: number
 ): Promise<string> {
-  const s = body || ''
-  if (!s.includes(USER_ATTACHMENTS)) return s
-  const html = await getIssueBodyHtml(issueNumber)
-  if (!html) return s
-  return resolveUserAttachmentMarkdown(s, html)
+  let s = body || ''
+  if (s.includes(USER_ATTACHMENTS)) {
+    const html = await getIssueBodyHtml(issueNumber)
+    if (html) s = resolveUserAttachmentMarkdown(s, html)
+  }
+  return stripTypefullySocialHtmlCommentsForMdx(s)
 }
