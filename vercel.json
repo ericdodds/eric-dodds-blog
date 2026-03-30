@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/sync-published-note-links",
+      "schedule": "0 */6 * * *"
+    }
+  ]
+}
