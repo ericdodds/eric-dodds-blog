@@ -55,11 +55,10 @@ export function collectPublishedPlatformLinks(data: {
 
 /** Markdown block that replaces content between NOTE_SOCIAL_* markers. */
 export function buildNoteSocialBlock(draftId: number, links: PublishedPlatformLink[]): string {
-  const lines = links.map((l) => `- [${l.label}](${l.url})`)
   const body =
     links.length > 0
-      ? `**Also on social**\n${lines.join('\n')}`
-      : '_Social links will appear here after publish._'
+      ? `**Discuss on social:** ${links.map((l) => `[${l.label}](${l.url})`).join(', ')}`
+      : '_Discuss on social: links appear here after publish._'
   return `${NOTE_SOCIAL_START}
 <!-- typefully-draft:${draftId} -->
 ${body}
@@ -82,7 +81,7 @@ export function mergeSocialBlockIntoIssueBody(
 
 /**
  * MDX treats `<` as JSX; raw `<!-- ... -->` in issue bodies can crash compile.
- * Strip only the bot-managed markers; leave "**Also on social**" markdown intact.
+ * Strip only the bot-managed markers; leave the Discuss on social line intact.
  */
 export function stripTypefullySocialHtmlCommentsForMdx(markdown: string): string {
   return markdown
