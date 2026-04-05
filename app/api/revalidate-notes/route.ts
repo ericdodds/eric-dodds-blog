@@ -35,8 +35,9 @@ function verifyGitHubSignature(
 
 /**
  * One Typefully draft when the note first becomes visible on the site — same rules as /notes.
- * Uses `opened` / `reopened` / `labeled` (publish label only) only; GitHub `edited` does not
- * sync (further edits are meant to happen in Typefully). Content comes from `getNoteByNumber`.
+ * Uses `opened` / `reopened` / `labeled` (publish label only) / `unlabeled` (draft label
+ * removed while publish label present); GitHub `edited` does not sync (further edits are
+ * meant to happen in Typefully). Content comes from `getNoteByNumber`.
  */
 function shouldPushTypefullyOnInitialPublish(
   payload: GitHubIssuesPayload
@@ -49,9 +50,23 @@ function shouldPushTypefullyOnInitialPublish(
   if (!issue) return false
 
   const publishLabel = process.env.NOTES_PUBLISH_LABEL?.trim()
+  const draftLabel = process.env.NOTES_DRAFT_LABEL?.trim()
+
+  // Draft label is a hard blocker — never push if it's still present.
+  if (draftLabel && issue.labels?.some((l) => l.name === draftLabel)) return false
 
   if (publishLabel) {
+    // "published" label just added
     if (payload.action === 'labeled' && payload.label?.name === publishLabel) {
+      return issueIsVisibleAsNote(issue)
+    }
+    // "draft" label just removed while "published" is already present
+    if (
+      payload.action === 'unlabeled' &&
+      draftLabel &&
+      payload.label?.name === draftLabel &&
+      issue.labels?.some((l) => l.name === publishLabel)
+    ) {
       return issueIsVisibleAsNote(issue)
     }
     if (
@@ -133,7 +148,7 @@ export async function POST(request: Request) {
     process.env.TYPEFULLY_API_KEY?.trim() &&
     process.env.TYPEFULLY_SOCIAL_SET_ID?.trim() &&
     payload.issue &&
-    ['opened', 'reopened', 'labeled'].includes(payload.action)
+    ['opened', 'reopened', 'labeled', 'unlabeled'].includes(payload.action)
   ) {
     console.log('[typefully] skipped initial publish push', {
       action: payload.action,
