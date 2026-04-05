@@ -34,14 +34,16 @@ function githubHeaders(token: string): HeadersInit {
   }
 }
 
-function passesPublishLabel(issue: GitHubNote, publishLabel: string | undefined): boolean {
-  return passesPublishLabelFromLabels(issue.labels, publishLabel)
+function passesPublishLabel(issue: GitHubNote, publishLabel: string | undefined, draftLabel: string | undefined): boolean {
+  return passesPublishLabelFromLabels(issue.labels, publishLabel, draftLabel)
 }
 
 function passesPublishLabelFromLabels(
   labels: { name: string }[] | undefined,
-  publishLabel: string | undefined
+  publishLabel: string | undefined,
+  draftLabel: string | undefined
 ): boolean {
+  if (draftLabel && labels?.some((l) => l.name === draftLabel)) return false
   if (!publishLabel) return true
   return labels?.some((l) => l.name === publishLabel) ?? false
 }
@@ -57,11 +59,15 @@ export type GitHubWebhookIssue = {
   pull_request?: unknown
 }
 
-/** Same visibility rules as the /notes page (open issue, not a PR, optional publish label). */
+/** Same visibility rules as the /notes page (open issue, not a PR, optional publish/draft labels). */
 export function issueIsVisibleAsNote(issue: GitHubWebhookIssue): boolean {
   if (issue.pull_request != null) return false
   if (issue.state !== 'open') return false
-  return passesPublishLabelFromLabels(issue.labels, process.env.NOTES_PUBLISH_LABEL?.trim())
+  return passesPublishLabelFromLabels(
+    issue.labels,
+    process.env.NOTES_PUBLISH_LABEL?.trim(),
+    process.env.NOTES_DRAFT_LABEL?.trim()
+  )
 }
 
 /** In dev, avoid Data Cache so new issues show up on refresh. Production uses tags + ISR for webhooks. */
@@ -92,11 +98,12 @@ export async function getNotes(): Promise<GitHubNote[]> {
 
   const data = (await res.json()) as GitHubIssueApi[]
   const publishLabel = process.env.NOTES_PUBLISH_LABEL?.trim()
+  const draftLabel = process.env.NOTES_DRAFT_LABEL?.trim()
 
   return data
     .filter((item) => item.pull_request == null)
     .map(({ pull_request: _p, ...issue }) => issue as GitHubNote)
-    .filter((issue) => passesPublishLabel(issue, publishLabel))
+    .filter((issue) => passesPublishLabel(issue, publishLabel, draftLabel))
 }
 
 export async function getNoteByNumber(
@@ -123,8 +130,9 @@ export async function getNoteByNumber(
   if (issue.pull_request != null) return null
 
   const publishLabel = process.env.NOTES_PUBLISH_LABEL?.trim()
+  const draftLabel = process.env.NOTES_DRAFT_LABEL?.trim()
   const note = issue as GitHubNote
-  if (!passesPublishLabel(note, publishLabel)) return null
+  if (!passesPublishLabel(note, publishLabel, draftLabel)) return null
 
   return note
 }
