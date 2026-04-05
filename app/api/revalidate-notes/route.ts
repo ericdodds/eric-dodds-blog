@@ -35,8 +35,8 @@ function verifyGitHubSignature(
 
 /**
  * One Typefully draft when the note first becomes visible on the site — same rules as /notes.
- * Uses `opened` / `reopened` / `labeled` (publish label only) / `unlabeled` (draft label
- * removed while publish label present); GitHub `edited` does not sync (further edits are
+ * Triggers on `opened` / `reopened` (without draft label), `labeled` (publish label added),
+ * or `unlabeled` (draft label removed). GitHub `edited` does not sync (further edits are
  * meant to happen in Typefully). Content comes from `getNoteByNumber`.
  */
 function shouldPushTypefullyOnInitialPublish(
@@ -76,6 +76,15 @@ function shouldPushTypefullyOnInitialPublish(
       return issueIsVisibleAsNote(issue)
     }
     return false
+  }
+
+  // Draft-only workflow: "draft" label just removed → note becomes visible.
+  if (
+    payload.action === 'unlabeled' &&
+    draftLabel &&
+    payload.label?.name === draftLabel
+  ) {
+    return issueIsVisibleAsNote(issue)
   }
 
   if (payload.action !== 'opened' && payload.action !== 'reopened') return false
