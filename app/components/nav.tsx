@@ -1,6 +1,13 @@
 import Link from 'next/link'
 
-const navItems = [
+type NavItem = {
+  path: string
+  name: string
+  /** When true, render the home marker (•) in place of the name text. */
+  icon?: boolean
+}
+
+const navItems: readonly NavItem[] = [
   {
     path: '/',
     name: 'home',
@@ -26,7 +33,7 @@ const navItems = [
     path: '/contact',
     name: 'contact',
   },
-] as const
+]
 
 function DoddsLogo() {
   // Oversized bullet that reads as a dedicated "home" marker instead of
