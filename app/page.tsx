@@ -47,6 +47,12 @@ export default function Page() {
           Recent blog posts
         </h2>
         <BlogPosts limit={5} />
+        <Link
+          href="/blog"
+          className="mt-4 inline-block text-sm text-neutral-600 underline decoration-neutral-400 underline-offset-2 dark:text-neutral-400 dark:decoration-neutral-600"
+        >
+          View all
+        </Link>
       </div>
     </section>
   )
