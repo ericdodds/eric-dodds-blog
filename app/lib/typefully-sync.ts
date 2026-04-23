@@ -148,16 +148,30 @@ async function uploadRemoteImageToTypefully(
   return ready ? presigned.media_id : null
 }
 
-type TypefullyPlatformPost = { text: string; media_ids: string[] }
+type TypefullyPlatformPost = {
+  text: string
+  media_ids: string[]
+  /** X-only: convert this post into a quote-post of the given X status URL. */
+  quote_post_url?: string
+}
 
-function buildPlatformsJson(text: string, mediaIds: string[]) {
+function buildPlatformsJson(
+  text: string,
+  mediaIds: string[],
+  quotePostUrl: string | null
+) {
   const platformsList = parsePlatforms()
-  const post: TypefullyPlatformPost = { text, media_ids: mediaIds }
   const platforms: Record<
     string,
     { enabled: boolean; posts: TypefullyPlatformPost[]; settings: Record<string, never> }
   > = {}
   for (const p of platformsList) {
+    const post: TypefullyPlatformPost = { text, media_ids: mediaIds }
+    // `quote_post_url` is only valid on X per Typefully's API; other platforms
+    // reject it with VALIDATION_ERROR / extra_forbidden.
+    if (p === 'x' && quotePostUrl) {
+      post.quote_post_url = quotePostUrl
+    }
     platforms[p] = { enabled: true, posts: [post], settings: {} }
   }
   return platforms
@@ -229,12 +243,9 @@ export async function createTypefullyDraftFromIssue(
   const mediaIds = mediaResults.filter((id): id is string => id != null)
 
   const body: Record<string, unknown> = {
-    platforms: buildPlatformsJson(text, mediaIds),
+    platforms: buildPlatformsJson(text, mediaIds, quotePostUrl),
     draft_title: `${issue.title} (#${issue.number})`,
     scratchpad_text: `Source: ${issue.html_url}`,
-  }
-  if (quotePostUrl) {
-    body.quote_post_url = quotePostUrl
   }
 
   const res = await fetch(`${API}/v2/social-sets/${socialSetId}/drafts`, {
