@@ -70,6 +70,38 @@ export function issueIsVisibleAsNote(issue: GitHubWebhookIssue): boolean {
   )
 }
 
+/** Name of the label that marks a note as an X quote-post (default: `x-quote`). */
+export function getQuotePostLabelName(): string {
+  return process.env.NOTES_QUOTE_POST_LABEL?.trim() || 'x-quote'
+}
+
+/** Does this set of labels mark the note as an X quote-post? */
+export function hasQuotePostLabel(
+  labels: { name: string }[] | null | undefined
+): boolean {
+  if (!labels?.length) return false
+  const target = getQuotePostLabelName()
+  return labels.some((l) => l.name === target)
+}
+
+/**
+ * Name of the label marking a note whose X quote-post is already live on X;
+ * such notes skip Typefully and get expanded from the X syndication API.
+ * Default: `x-quote-posted`.
+ */
+export function getQuotePostedLabelName(): string {
+  return process.env.NOTES_QUOTE_POSTED_LABEL?.trim() || 'x-quote-posted'
+}
+
+/** Does this set of labels mark the note as an already-posted X quote? */
+export function hasQuotePostedLabel(
+  labels: { name: string }[] | null | undefined
+): boolean {
+  if (!labels?.length) return false
+  const target = getQuotePostedLabelName()
+  return labels.some((l) => l.name === target)
+}
+
 /** In dev, avoid Data Cache so new issues show up on refresh. Production uses tags + ISR for webhooks. */
 function githubFetchInit(): RequestInit {
   if (process.env.NODE_ENV === 'development') {

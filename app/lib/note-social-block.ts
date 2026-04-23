@@ -82,10 +82,15 @@ export function mergeSocialBlockIntoIssueBody(
 /**
  * MDX treats `<` as JSX; raw `<!-- ... -->` in issue bodies can crash compile.
  * Strip only the bot-managed markers; leave the Discuss on social line intact.
+ * Also strips the `x-quote-expansion` / `x-quote-source` markers written by
+ * `app/lib/x-quote-expansion.ts` for the `x-quote-posted` flow.
  */
 export function stripTypefullySocialHtmlCommentsForMdx(markdown: string): string {
   return markdown
     .replace(/<!--\s*note-social:start\s*-->/gi, '')
     .replace(/<!--\s*note-social:end\s*-->/gi, '')
     .replace(/<!--\s*typefully-draft:\d+\s*-->/gi, '')
+    .replace(/<!--\s*x-quote-expansion:start\s*-->/gi, '')
+    .replace(/<!--\s*x-quote-expansion:end\s*-->/gi, '')
+    .replace(/<!--\s*x-quote-source:\d+\s*-->/gi, '')
 }

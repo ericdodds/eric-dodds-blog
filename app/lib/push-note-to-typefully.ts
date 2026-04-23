@@ -1,8 +1,8 @@
-import { getNoteByNumber } from 'app/lib/github-notes'
+import { getNoteByNumber, hasQuotePostedLabel } from 'app/lib/github-notes'
 import { createTypefullyDraftFromIssue } from 'app/lib/typefully-sync'
 
 export type PushNoteToTypefullyResult =
-  | { ran: false; reason: 'typefully_env_missing' | 'note_not_found' }
+  | { ran: false; reason: 'typefully_env_missing' | 'note_not_found' | 'quote_posted_label' }
   | { ran: true; ok: true; draftId: number; privateUrl?: string }
   | { ran: true; ok: false; error: string }
 
@@ -10,6 +10,7 @@ export type PushNoteToTypefullyResult =
  * Load the note the same way /notes does, then create a Typefully draft.
  * Webhook invokes this only on initial note visibility (opened / reopened / labeled).
  * Use `bypassDataCache` so the draft matches GitHub right after the event.
+ * Notes labeled `x-quote-posted` never go to Typefully — the quote is already live on X.
  */
 export async function pushPublishedNoteToTypefully(
   issueNumber: number
@@ -23,11 +24,16 @@ export async function pushPublishedNoteToTypefully(
     return { ran: false, reason: 'note_not_found' }
   }
 
+  if (hasQuotePostedLabel(note.labels)) {
+    return { ran: false, reason: 'quote_posted_label' }
+  }
+
   const result = await createTypefullyDraftFromIssue({
     number: note.number,
     title: note.title,
     body: note.body,
     html_url: note.html_url,
+    labels: note.labels,
   })
 
   if (!result.ok) {

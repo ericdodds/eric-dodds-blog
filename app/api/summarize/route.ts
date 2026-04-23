@@ -1,5 +1,4 @@
 import { generateText } from 'ai'
-import { gateway } from '@ai-sdk/gateway'
 import { getModelById } from '../../lib/models'
 
 export async function POST(request: Request) {
@@ -25,10 +24,15 @@ export async function POST(request: Request) {
       )
     }
     
-    // Check if AI Gateway is configured
-    if (!process.env.AI_GATEWAY_API_KEY) {
+    // AI Gateway auth: prefer Vercel OIDC (VERCEL_OIDC_TOKEN, auto-injected on Vercel
+    // deployments and `vercel dev`), fall back to a personal AI_GATEWAY_API_KEY for
+    // environments without OIDC (e.g. `next dev` with a pulled dev key).
+    if (!process.env.VERCEL_OIDC_TOKEN && !process.env.AI_GATEWAY_API_KEY) {
       return Response.json(
-        { error: 'AI Gateway not configured. Please set AI_GATEWAY_API_KEY environment variable.' },
+        {
+          error:
+            'AI Gateway not configured. Run with `vercel dev` (OIDC) or set AI_GATEWAY_API_KEY.',
+        },
         { status: 500 }
       )
     }
@@ -55,7 +59,8 @@ export async function POST(request: Request) {
       message: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined,
       model: model,
-      hasGatewayKey: !!process.env.AI_GATEWAY_API_KEY
+      hasGatewayKey: !!process.env.AI_GATEWAY_API_KEY,
+      hasOidcToken: !!process.env.VERCEL_OIDC_TOKEN,
     })
     return Response.json(
       { 

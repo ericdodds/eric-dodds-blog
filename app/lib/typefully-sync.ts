@@ -1,5 +1,7 @@
 import { resolveNoteBodyWithIssueHtml } from 'app/lib/github-issue-body-html'
 import { extractImageUrlsFromIssueBody, issueBodyToSocialPlainText } from 'app/lib/issue-body-social'
+import { findFirstStandaloneTweetUrl } from 'app/lib/tweet-id'
+import { hasQuotePostLabel, getQuotePostLabelName } from 'app/lib/github-notes'
 
 const API = 'https://api.typefully.com'
 
@@ -166,15 +168,28 @@ export type TypefullySyncIssueInput = {
   title: string
   body: string | null
   html_url: string
+  labels?: { name: string }[] | null
 }
 
 export type TypefullySyncResult =
   | { ok: true; draftId: number; privateUrl?: string }
   | { ok: false; reason: string }
 
+/** Remove a specific URL line from the plain-text post body. */
+function removeUrlLineFromText(text: string, url: string): string {
+  if (!text || !url) return text
+  const lines = text.split(/\r?\n/)
+  const filtered = lines.filter((line) => line.trim() !== url.trim())
+  return filtered.join('\n').replace(/\n{3,}/g, '\n\n').trim()
+}
+
 /**
  * Create a Typefully draft from a published note (issue body + images).
  * Requires TYPEFULLY_API_KEY and TYPEFULLY_SOCIAL_SET_ID.
+ *
+ * If the note carries the quote-post label (see `NOTES_QUOTE_POST_LABEL`) and
+ * contains a standalone X status URL, that URL becomes `quote_post_url` and
+ * is stripped from the post text so X publishes it as a native quote-post.
  */
 export async function createTypefullyDraftFromIssue(
   issue: TypefullySyncIssueInput
@@ -188,10 +203,21 @@ export async function createTypefullyDraftFromIssue(
   const issueBody = await resolveNoteBodyWithIssueHtml(issue.body, issue.number)
 
   const plain = issueBodyToSocialPlainText(issueBody)
-  const text =
-    plain ||
-    issue.title ||
-    ' '
+
+  const isQuotePost = hasQuotePostLabel(issue.labels ?? undefined)
+  let quotePostUrl: string | null = null
+  let text = plain || issue.title || ' '
+
+  if (isQuotePost) {
+    quotePostUrl = findFirstStandaloneTweetUrl(issueBody)
+    if (quotePostUrl) {
+      text = removeUrlLineFromText(text, quotePostUrl) || issue.title || ' '
+    } else {
+      console.warn(
+        `[typefully] note #${issue.number} has label "${getQuotePostLabelName()}" but no standalone X URL found; falling back to normal draft`
+      )
+    }
+  }
 
   const imageUrls = extractImageUrlsFromIssueBody(issueBody || '')
   const maxImages = Math.min(Number(process.env.TYPEFULLY_MAX_IMAGES || '4') || 4, 10)
@@ -202,10 +228,13 @@ export async function createTypefullyDraftFromIssue(
   )
   const mediaIds = mediaResults.filter((id): id is string => id != null)
 
-  const body = {
+  const body: Record<string, unknown> = {
     platforms: buildPlatformsJson(text, mediaIds),
     draft_title: `${issue.title} (#${issue.number})`,
     scratchpad_text: `Source: ${issue.html_url}`,
+  }
+  if (quotePostUrl) {
+    body.quote_post_url = quotePostUrl
   }
 
   const res = await fetch(`${API}/v2/social-sets/${socialSetId}/drafts`, {
