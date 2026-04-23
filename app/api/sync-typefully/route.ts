@@ -71,6 +71,13 @@ export async function POST(request: Request) {
     )
   }
 
+  if (!push.ran && push.reason === 'quote_posted_label') {
+    return NextResponse.json(
+      { ok: true, skipped: 'quote_posted_label', note_number: issueNumber },
+      { status: 200 }
+    )
+  }
+
   if (push.ran && !push.ok) {
     console.error('[typefully] sync-typefully failed:', push.error)
     return NextResponse.json({ ok: false, error: push.error }, { status: 502 })

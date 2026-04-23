@@ -3,10 +3,16 @@ import { createHmac, timingSafeEqual } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import {
   GITHUB_NOTES_CACHE_TAG,
+  hasQuotePostedLabel,
   issueIsVisibleAsNote,
   type GitHubWebhookIssue,
 } from 'app/lib/github-notes'
 import { pushPublishedNoteToTypefully } from 'app/lib/push-note-to-typefully'
+import {
+  fetchGithubIssueForPatch,
+  patchGithubIssueBody,
+} from 'app/lib/github-issues-write'
+import { computeQuoteExpansion } from 'app/lib/x-quote-expansion'
 
 /** Allow Typefully image upload + draft POST after revalidate. */
 export const maxDuration = 60
@@ -48,6 +54,9 @@ function shouldPushTypefullyOnInitialPublish(
 
   const issue = payload.issue
   if (!issue) return false
+
+  // `x-quote-posted` means the quote is already live on X — never re-post via Typefully.
+  if (hasQuotePostedLabel(issue.labels)) return false
 
   const publishLabel = process.env.NOTES_PUBLISH_LABEL?.trim()
   const draftLabel = process.env.NOTES_DRAFT_LABEL?.trim()
@@ -152,18 +161,83 @@ export async function POST(request: Request) {
       console.error('[typefully] draft failed after publish:', push.error)
     } else if (!push.ran && push.reason === 'note_not_found') {
       typefully_skip = 'note_not_visible_after_revalidate'
+    } else if (!push.ran && push.reason === 'quote_posted_label') {
+      typefully_skip = 'quote_posted_label'
     }
   } else if (
     process.env.TYPEFULLY_API_KEY?.trim() &&
     process.env.TYPEFULLY_SOCIAL_SET_ID?.trim() &&
     payload.issue &&
-    ['opened', 'reopened', 'labeled', 'unlabeled'].includes(payload.action)
+    ['opened', 'reopened', 'labeled', 'unlabeled'].includes(payload.action) &&
+    !hasQuotePostedLabel(payload.issue.labels)
   ) {
     console.log('[typefully] skipped initial publish push', {
       action: payload.action,
       issue: payload.issue.number,
       noteVisible: issueIsVisibleAsNote(payload.issue),
     })
+  }
+
+  // If this issue is an "already posted on X" quote note, expand the quote-tweet
+  // into the issue body (idempotent via `<!-- x-quote-source:* -->` marker).
+  let x_quote_expanded: boolean | undefined
+  let x_quote_expansion_error: string | undefined
+  if (
+    payload.issue &&
+    hasQuotePostedLabel(payload.issue.labels) &&
+    ['opened', 'reopened', 'labeled'].includes(payload.action) &&
+    issueIsVisibleAsNote(payload.issue)
+  ) {
+    try {
+      const notesRepo = process.env.NOTES_GITHUB_REPO?.trim().split('/') ?? []
+      const owner = notesRepo[0]
+      const repo = notesRepo[1]
+      const issueNumber = payload.issue.number
+
+      if (!owner || !repo) {
+        x_quote_expansion_error = 'NOTES_GITHUB_REPO not configured'
+      } else {
+        const meta = await fetchGithubIssueForPatch(owner, repo, issueNumber)
+        if (!meta) {
+          x_quote_expansion_error = 'could not load GitHub issue for expansion'
+        } else {
+          const result = await computeQuoteExpansion(meta.body)
+          if (!result.ok) {
+            console.warn('[x-quote] expansion skipped:', result.reason, {
+              issue: issueNumber,
+            })
+            x_quote_expansion_error = result.reason
+          } else if (!result.changed) {
+            console.log('[x-quote] expansion unchanged', { issue: issueNumber })
+            x_quote_expanded = false
+          } else {
+            const patched = await patchGithubIssueBody(
+              owner,
+              repo,
+              issueNumber,
+              result.nextBody
+            )
+            if (!patched.ok) {
+              x_quote_expansion_error = `GitHub PATCH ${patched.status}: ${patched.message}`
+              console.error('[x-quote] PATCH failed:', x_quote_expansion_error)
+            } else {
+              x_quote_expanded = true
+              revalidateTag(GITHUB_NOTES_CACHE_TAG, 'default')
+              revalidatePath('/notes')
+              revalidatePath(`/notes/${issueNumber}`)
+              console.log('[x-quote] expanded quote into issue', {
+                issue: issueNumber,
+                tweetId: result.quoteTweetId,
+              })
+            }
+          }
+        }
+      }
+    } catch (err) {
+      x_quote_expansion_error =
+        err instanceof Error ? err.message : 'unknown expansion error'
+      console.error('[x-quote] expansion threw:', x_quote_expansion_error)
+    }
   }
 
   return NextResponse.json({
@@ -173,5 +247,7 @@ export async function POST(request: Request) {
     typefully_synced,
     typefully_skip,
     typefully_error: typefully_error?.slice(0, 400),
+    x_quote_expanded,
+    x_quote_expansion_error: x_quote_expansion_error?.slice(0, 400),
   })
 }

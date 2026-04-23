@@ -1,7 +1,9 @@
-import type { ComponentProps, ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps, ComponentPropsWithoutRef, ReactNode } from 'react'
 import Image from 'next/image'
 import YouTube from 'app/components/YouTube'
+import Tweet from 'app/components/Tweet'
 import { extractYoutubeId } from 'app/lib/youtube-id'
+import { extractTweetId } from 'app/lib/tweet-id'
 import { buildNoteImageProxyUrl } from 'app/lib/rewrite-note-images'
 
 function NoteImg({ src, alt, ...rest }: ComponentPropsWithoutRef<'img'>) {
@@ -14,30 +16,40 @@ function NoteImg({ src, alt, ...rest }: ComponentPropsWithoutRef<'img'>) {
   return <img src={src} alt={alt ?? ''} {...rest} />
 }
 
+function childrenToText(children: ReactNode): string {
+  if (typeof children === 'string') return children
+  if (Array.isArray(children)) return children.filter((c) => typeof c === 'string').join('')
+  return ''
+}
+
+/**
+ * True when the link's visible text is effectively the raw href. This is how
+ * GitHub-flavored autolinks (bare URLs on their own line) surface through
+ * remark-gfm: href and child text both equal the URL.
+ */
+function linkTextMatchesHref(childText: string, href: string, id: string): boolean {
+  if (!childText) return true
+  if (childText === href) return true
+  if (childText === id) return true
+  const hrefNorm = href.replace(/\/$/, '')
+  const childNorm = childText.replace(/\/$/, '')
+  return childNorm === hrefNorm
+}
+
 function MarkdownLink({
   href,
   children,
   ...rest
 }: ComponentPropsWithoutRef<'a'>) {
   if (href) {
-    const id = extractYoutubeId(href)
-    if (id) {
-      const childText =
-        typeof children === 'string'
-          ? children
-          : Array.isArray(children)
-            ? children.join('')
-            : ''
-      const hrefNorm = href.replace(/\/$/, '')
-      const childNorm = childText.replace(/\/$/, '')
-      if (
-        !childText ||
-        childText === href ||
-        childNorm === hrefNorm ||
-        childText === id
-      ) {
-        return <YouTube id={id} />
-      }
+    const childText = childrenToText(children)
+    const youtubeId = extractYoutubeId(href)
+    if (youtubeId && linkTextMatchesHref(childText, href, youtubeId)) {
+      return <YouTube id={youtubeId} />
+    }
+    const tweetId = extractTweetId(href)
+    if (tweetId && linkTextMatchesHref(childText, href, tweetId)) {
+      return <Tweet id={tweetId} url={href} />
     }
   }
   return (
@@ -62,6 +74,7 @@ export const noteMdxComponents = {
     />
   ),
   YouTube,
+  Tweet,
   a: MarkdownLink,
   img: NoteImg,
   code: (props: ComponentPropsWithoutRef<'code'>) => <code {...props} />,

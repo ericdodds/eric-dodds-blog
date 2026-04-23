@@ -53,6 +53,9 @@ importers:
       react-dom:
         specifier: 19.1.2
         version: 19.1.2(react@19.1.2)
+      react-tweet:
+        specifier: ^3.3.0
+        version: 3.3.0(react-dom@19.1.2(react@19.1.2))(react@19.1.2)
       rehype-slug:
         specifier: ^6.0.0
         version: 6.0.0
@@ -2860,6 +2863,12 @@ packages:
     peerDependencies:
       react: '>=16.3.0'
       react-dom: '>=16.3.0'
+
+  react-tweet@3.3.0:
+    resolution: {integrity: sha512-gSIG2169ZK7UH6rBzuU+j1xnQbH3IlOTLEkuGrRiJJTMgETik+h+26yHyyVKrLkzwrOaYPk4K3OtEKycqKgNLw==}
+    peerDependencies:
+      react: ^18.0.0 || ^19.0.0
+      react-dom: ^18.0.0 || ^19.0.0
 
   react-zoom-pan-pinch@3.7.0:
     resolution: {integrity: sha512-UmReVZ0TxlKzxSbYiAj+LeGRW8s8LraAFTXRAxzMYnNRgGPsxCudwZKVkjvGmjtx7SW/hZamt69NUmGf4xrkXA==}
@@ -6732,6 +6741,14 @@ snapshots:
       react-dom: 19.1.2(react@19.1.2)
       react-draggable: 4.4.6(react-dom@19.1.2(react@19.1.2))(react@19.1.2)
       tslib: 2.6.2
+
+  react-tweet@3.3.0(react-dom@19.1.2(react@19.1.2))(react@19.1.2):
+    dependencies:
+      '@swc/helpers': 0.5.15
+      clsx: 2.1.1
+      react: 19.1.2
+      react-dom: 19.1.2(react@19.1.2)
+      swr: 2.3.6(react@19.1.2)
 
   react-zoom-pan-pinch@3.7.0(react-dom@19.1.2(react@19.1.2))(react@19.1.2):
     dependencies:
