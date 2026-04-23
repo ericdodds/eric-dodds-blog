@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'About',
-  description: 'Learn about Eric Dodds.', 
+  description: 'Learn about Eric Dodds.',
 };
 
 export default function AboutPage() {
