@@ -175,7 +175,7 @@ export default async function Blog({ params }) {
       <h1 className="title font-semibold text-2xl tracking-tighter text-neutral-950 dark:text-white">
         {post.metadata.title}
       </h1>
-      <div className="flex justify-between items-center mt-2 mb-4 text-sm">
+<div className="mt-2 mb-4 text-sm flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
         <p className="text-sm text-neutral-600 dark:text-neutral-400">
           {formatDate(post.metadata.publishedAt)}
           <span aria-hidden className="mx-1.5 text-neutral-400 dark:text-neutral-500">
