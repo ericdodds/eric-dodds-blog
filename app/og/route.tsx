@@ -9,30 +9,14 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const title = searchParams.get('title') || 'Eric Dodds Weblog'
 
+  // Fonts and logo are read from public/ so they're available in the Vercel
+  // serverless filesystem at runtime. Reading from node_modules fails on
+  // Vercel (ENOENT) because npm package binaries aren't bundled into the
+  // function's /var/task filesystem.
   const [logoData, fontSemiBold, fontBold] = await Promise.all([
     readFile(path.join(process.cwd(), 'public', 'icons', 'dodds-logo-og.png')),
-    readFile(
-      path.join(
-        process.cwd(),
-        'node_modules',
-        'geist',
-        'dist',
-        'fonts',
-        'geist-sans',
-        'Geist-SemiBold.ttf'
-      )
-    ),
-    readFile(
-      path.join(
-        process.cwd(),
-        'node_modules',
-        'geist',
-        'dist',
-        'fonts',
-        'geist-sans',
-        'Geist-Bold.ttf'
-      )
-    ),
+    readFile(path.join(process.cwd(), 'public', 'fonts', 'Geist-SemiBold.ttf')),
+    readFile(path.join(process.cwd(), 'public', 'fonts', 'Geist-Bold.ttf')),
   ])
 
   const logo = `data:image/png;base64,${logoData.toString('base64')}`
