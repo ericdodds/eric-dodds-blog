@@ -1,0 +1,72 @@
+---
+title: 'Table component test'
+publishedAt: 2026-08-05
+summary: 'A test post to verify the new styled, mobile-friendly table component.'
+categories: ['Nerdery', 'AI']
+---
+
+This post exists to test the new styled table component. Below are a few variations so you can check borders, header rows, wrapping, dark mode, and mobile scroll.
+
+## Markdown table (GFM)
+
+This one is written as a standard markdown table and renders through the lowercase `table` mapping:
+
+| Detector | Type | Pricing | False positive rate | Notes |
+| --- | --- | --- | --- | --- |
+| Pangram | API + dashboard | Usage-based | Low | Trained specifically on recent model output |
+| GPTZero | API + web app | Freemium | Moderate | One of the earliest tools; broad adoption |
+| Originality.ai | API + checker | Subscription | Moderate | Bundled with plagiarism checks |
+| Winston AI | Enterprise platform | Custom | Low | Education-focused with document tracking |
+
+## Explicit JSX table
+
+This one uses the `<Table>` component directly, with longer cell content to test wrapping and row height:
+
+<Table>
+  <thead>
+    <tr>
+      <th>Prompt</th>
+      <th>Model</th>
+      <th>Pangram score</th>
+      <th>Observation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Write a 300-word Substack post about morning routines</td>
+      <td>GPT-4o</td>
+      <td>0.98</td>
+      <td>Flagged as AI-generated; generic structure and hedging language</td>
+    </tr>
+    <tr>
+      <td>Write the same post but include a personal anecdote and a specific product name</td>
+      <td>GPT-4o</td>
+      <td>0.41</td>
+      <td>Score dropped significantly once concrete details were introduced</td>
+    </tr>
+    <tr>
+      <td>Hand-written post with no AI assistance</td>
+      <td>—</td>
+      <td>0.03</td>
+      <td>Correctly classified as human</td>
+    </tr>
+    <tr>
+      <td>AI draft rewritten in my own voice with edits throughout</td>
+      <td>Claude 3.5 Sonnet → human edit</td>
+      <td>0.22</td>
+      <td>Edits pulled the score down, but not as far as the fully hand-written version</td>
+    </tr>
+  </tbody>
+</Table>
+
+## A narrow table
+
+Just to confirm small tables don't stretch unnecessarily:
+
+| Setting | Value |
+| --- | --- |
+| Model | Pangram v3 |
+| Threshold | 0.5 |
+| Sample size | 50 posts |
+
+If the table looks right — thin borders under each row, a bolder header row, cells that wrap instead of forcing one line, and horizontal scroll on mobile when needed — the component is working.

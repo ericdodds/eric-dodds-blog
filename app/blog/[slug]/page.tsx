@@ -9,6 +9,7 @@ import remarkGfm from 'remark-gfm'
 import rehypeSlug from 'rehype-slug'
 import Image from 'next/image'
 import YouTube from 'app/components/YouTube'
+import Table from 'app/components/Table'
 
 export async function generateStaticParams() {
   let posts = getBlogPosts()
@@ -69,7 +70,12 @@ const components = {
   Image: (props) => <Image {...props} width={Number(props.width) || 800} height={Number(props.height) || 600} />,
   a: (props) => <a {...props} />,
   code: (props) => <code {...props} />,
-  Table: (props) => <table {...props} />,
+  Table: (props) => (
+    <Table {...props} />
+  ),
+  table: (props) => (
+    <Table {...props} />
+  ),
   YouTube,
 }
 

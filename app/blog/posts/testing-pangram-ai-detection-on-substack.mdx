@@ -1,0 +1,165 @@
+---
+title: 'Testing Pangram's AI detection on Substack'
+publishedAt: 2026-08-05
+summary: ''
+categories: ['Nerdery', 'AI']
+---
+
+I create and publish show notes for a weekly podcast and Substack is one of the distribution channels. 
+
+When Substack rolled out their latest AI detection feature, I couldn’t wait to try it. I earn my living as a writer, and intentionally live on both ends of the AI content generation spectrum: 
+- At work I help build a powerful custom content agent that is used for much of the content my team produces
+- On this blog and in unpublished work, I don’t use AI to write at all (I practice writing without AI nearly every day)
+
+I ran these as anecdotal experiments to satisfy my own curiosity, so I didn’t design a formal test. I will start with a short summary of my learnings and the results, then share more context below.
+
+## Learnings summary 
+- Human input seems to have the biggest impact on detection output
+- Newer models seem to achieve lower AI detection under the same conditions
+- AI trains to a distribution, so it’s not about the em-dashes
+
+Read my full post-experiment thoughts [at the end of the post](#thoughts-and-learnings). 
+
+## Results summary
+
+### Same-model tests with GLM 5.2
+
+In the first round of tests, I used GLM 5.2 for generation to control for differences in models. 
+
+| Test | AI usage | AI | AI-assisted | Human | My assessment |
+| --- |--- | --- | --- | --- | --- |
+| 1 | AI-generated, full human edit | 64% | 0% | 36% | accurate |
+| 2 | AI-generated, light human edit | 53% | 47% | 0% | somewhat inaccurate |
+| 3 | AI-generated, no human edits | 45% | 55% | 0% | somewhat accurate |
+| 4 | Human-written from AI-generated outline | 0% | 0% | 100% | accurate |
+
+### Claude and other human tests
+
+In the second round of tests, I wanted to try a different model as well as my own writing created without any AI at all. 
+
+| Test | AI usage | Input | AI | AI-assisted | Human | My assessment |
+| --- | --- | --- | --- | --- | --- | --- |
+| 5 | AI-generated, light human edit (Claude Sonnet 4.6) | Claude-generated show notes, lightly edited | 100% | 0% | 0% | somewhat inaccurate |
+| 6 | 100% human-written sketch | Sketch from my blog | 0% | 0% | 100% | accurate |
+| 7 | Human-written poem | A short poem[^1] | — | — | — | not enough text to run detection |
+| 8 | Human-written | This post | 0% | 0% | 100% | accurate |
+
+## Generating show notes with AI 
+
+To generate show notes, I built a basic skill with OpenCode that: 
+- Analyzes a raw transcript file from the recorded show 
+- Performs research on relevant topics (using web search tools)
+- Generates a full show notes file in a specific format 
+
+I have a very high standard for writing and am staunchly against phoning it in on content by using AI, but show notes generation from a transcript seemed like a great use case for AI automation for a few reasons. 
+
+First, the transcript is literally spoken words, including mine, so the inputs to the model are theoretically more pure and comprehensive than a request for a model to generate content on the same topic. Also, the skill references previous show notes, many of which I hand wrote early in the life of the show. 
+
+Second, the primary form factors for the show are audio and video; I view show notes as a vehicle for efficiently extracting and summarizing key information from the other formats for the audience to reference when desired.
+
+Last, after testing and iteration, the results were surprisingly good, and by good, I mean clear and helpful as a summary of what was covered, which was the intent. 
+
+## Test details 
+
+### Test 1: AI-generated, full human edit
+
+I ran the first test on show notes I needed to publish the same week. The episode was titled _An OpenAI model escaped its sandbox, but that isn't AGI_ and you can [read the show notes here](https://tokenintelligenceshow.substack.com/i/192986051/summary). I used GLM 5.2 in OpenCode using the show notes generation skill. 
+
+Pangram scored the content at AI 64%, AI-assisted 0%, and Human 36%, which seemed very accurate. In editing, I kept the general shape of the AI-generated notes, but did surgery on style, syntax, and some framing. 
+
+<Image src="/images/blog/testing-pangram-ai-detection-on-substack/test-1-full-human-edit-pangram-substack.png" alt="Pangram detection score for Test 1: AI-generated show notes with full human edit" width={800} height={600} />
+
+### Test 2: AI-generated, light human edit
+
+Next, I wanted to see how Pangram would react if I performed less editorial surgery. For this test (and the next one), I wanted to use a new set of show notes that I hadn’t spent time with to minimize my own editorial bias. 
+
+In the first pass, I generated show notes with the skill, and made light edits, primarily for style. 
+
+Pangram scored the content at AI 53%, AI-assisted 0%, Human 47%. This was the most surprising result in my testing because of how light my edits were. This was also a misdiagnosis in the wrong direction, which made me think about how people are going to game the system. 
+
+My hypothesis on how this content scored 47% human is that the inputs—the spoken-word transcript and previously edited show notes for reference—made the content code less as raw AI generation, making the human edits on much more potent. 
+
+<Image src="/images/blog/testing-pangram-ai-detection-on-substack/test-2-light-edits-pangram-substack.png" alt="Pangram detection score for Test 2: AI-generated show notes with light human edit" width={800} height={600} />
+
+### Test 3: AI-generated
+
+As a follow-up to the previous test, I ran detection on the original set of generated show notes, no edits. 
+
+Pangram scored the content at AI 45%, AI-assisted 55%, Human 0%. This seemed much more accurate, but highlights the potential impact of even light editing on Pangram’s detection algorithms. Anecdote isn’t evidence, but this disparity was one of the most interesting highlights from my testing. 
+
+<Image src="/images/blog/testing-pangram-ai-detection-on-substack/test-3-no-edits-pangram-substack.png" alt="Pangram detection score for Test 3: AI-generated show notes with no human edits" width={800} height={600} />
+
+### Test 4: Human-written from AI-generated outline
+
+The following week I decided to test Pangram again on a fresh set of human-written show notes, using AI as a research and summary tool, as opposed to a first-draft writer. The show was titled _Should you worry about using the latest AI model?_ and you can [read the show notes here](https://tokenintelligenceshow.substack.com/i/209328723/summary). 
+
+I built a skill for generating a transcript summary and show notes outline, then hand-wrote the final copy using the outline as a rough guide. The experience and result were far better overall (see the thoughts and learnings below), and Pangram scored the content as 100% human. 
+
+AI-outline-to-hand-written-copy is the process I will use going forward. 
+
+<Image src="/images/blog/testing-pangram-ai-detection-on-substack/test-4-human-written-ai-outline-pangram-substack.png" alt="Pangram detection score for Test 4: human-written show notes from an AI-generated outline" width={800} height={600} />
+
+### Test 5: AI generated, light human edit (Claude Sonnet 4.6)
+
+Since January, I’ve tried various models for generating show notes. GLM 5.2 is my current go-to for most things because of the cost/power ratio, but historically I’ve had success using Anthropic’s Claude Sonnet family. While less powerful than Opus and Fable, I’ve found it easier to steer for line-level edits. 
+
+I wanted to see how one of my preferred older models from a frontier lab, often celebrated in my peer group for its writing ability, performed against the open-weight GLM 5.2. 
+
+I chose a previous episode that used Claude Sonnet 4.6 for show notes generation and that I knew received a very similar light-edit treatment to the content in test 2. The title of this show was _AI is dangerous because it agrees with you_, and you can [read the show notes here](https://tokenintelligenceshow.substack.com/p/ai-is-dangerous-because-it-agrees). 
+
+Pangram scored this content as 100% AI generated. While that’s close to accurate, I was surprised that detection didn’t flag any level of AI-assisted writing like it did with GLM 5.2. 
+
+There are many variables at play and this wasn’t a scientific test, but it’s not hard to make the case that the latest models are simply far more capable than those of yestermonth. 
+
+<Image src="/images/blog/testing-pangram-ai-detection-on-substack/test-5-light-edits-claude-sonnet-4-6-pangram-substack.png" alt="Pangram detection score for Test 5: Claude Sonnet 4.6-generated show notes with light human edit" width={800} height={600} />
+
+### Test 6: Human-written sketch from my blog
+
+After several experiments with show notes, I decided to give Pangram a completely different style of writing that I knew was 100% crafted by a human.
+
+I drafted a Substack article with text from a sketch called [Street Poet](https://www.ericdodds.com/blog/street-poet) that I had recently published on my blog. 
+
+Pangram scored it at 100% Human, which was not only accurate, but made me feel good. 
+
+<Image src="/images/blog/testing-pangram-ai-detection-on-substack/test-6-human-written-sketch-pangram-substack.png" alt="Pangram detection score for Test 6: human-written sketch from my blog" width={800} height={600} />
+
+### Test 7: The Street Poet’s poem
+
+Out of curiosity, I also ran detection on the Street Poet’s poem[^1], but sadly, it was too short for Pangram to run a scan.
+
+<Image src="/images/blog/testing-pangram-ai-detection-on-substack/test-7-human-written-poem-pangram-substack.png" alt="Pangram detection result for Test 7: human-written poem too short to scan" width={800} height={600} />
+
+### Test 8: This blog post
+
+To uphold intellectual honesty, I had to run this post itself through Pangram detection, and I'm proud to say it's 100% artisanal human writing. 
+
+<Image src="/images/blog/testing-pangram-ai-detection-on-substack/test-8-human-written-blog-post-pangram-substack.png" alt="Pangram detection score for Test 8: this blog post" width={800} height={600} />
+
+## Thoughts and learnings
+
+I ran these tests to satisfy my own curiosity and to better understand the experience of authors facing a world where third-party tools they don’t control will tell readers how much of their content was written by AI. 
+
+My thoughts and learnings are far from scientific, but form good food for thought. 
+
+### Inputs seem to carry the influence
+
+One of my original hypotheses in using AI to generate show notes was that the inputs and skill were built on a human foundation, meaning model output would be less AI-coded. My rationale was that transcripts are human-spoken words and show notes references include human-written examples, so a well-designed skill should produce a human-sounding summary. 
+
+GLM 5.2’s highest score for AI was only 64% across all tests. Without any editing, the AI score was 45% and AI-assisted was 55%. Both heavy and light editing triggered human detection, which suggests that the human foundation of inputs makes any level of editing more potent. 
+
+### Newer models seem to trigger less AI detection 
+
+Comparing GLM 5.2 to Claude Sonnet 4.6 on different content isn’t a 1-1 comparison, but I was a bit surprised that Claude scored 100% AI under the same conditions. Models are improving. 
+
+### AI trains to a distribution, so detection goes deeper than em-dashes 
+
+Models were originally trained on human knowledge (largely text). I don’t have the education or training required to understand the intimate details of model training, but my understanding is that the training process produces a learned distribution of human writing, which models use when generating text. 
+
+The generated content in my tests was edited for style, in many cases to remove LLM patterns (“it’s not X, it’s Y”). But the generation tests all scored high on AI detection, suggesting that Pangram is detecting patterns in the distribution, which will show up at a deeper level than em dashes. 
+
+This makes sense based on my experience writing show notes by hand from the AI-generated outline (the input for test 4). The outline and the final show notes were in the same ballpark, but I heavily modified the framing and communication of the core points, and hand-writing those sentence-by-sentence likely pushed the final output outside of the distribution. 
+
+I plan on reading Pangram's Technical Report[^2] on their AI-generated text classifier to learn more. 
+
+[^1]: You can read the poem at the end of [Street Poet](https://ericdodds.com/blog/street-poet). 
+[^2]: Pangram has published multiple research papers. You can read their technical research paper on text classification [here](https://arxiv.org/pdf/2402.14873).
