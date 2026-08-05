@@ -2,6 +2,7 @@ import type { ComponentProps, ComponentPropsWithoutRef, ReactNode } from 'react'
 import Image from 'next/image'
 import YouTube from 'app/components/YouTube'
 import Tweet from 'app/components/Tweet'
+import Table from 'app/components/Table'
 import { extractYoutubeId } from 'app/lib/youtube-id'
 import { extractTweetId } from 'app/lib/tweet-id'
 import { buildNoteImageProxyUrl } from 'app/lib/rewrite-note-images'
@@ -78,5 +79,10 @@ export const noteMdxComponents = {
   a: MarkdownLink,
   img: NoteImg,
   code: (props: ComponentPropsWithoutRef<'code'>) => <code {...props} />,
-  Table: (props: ComponentPropsWithoutRef<'table'>) => <table {...props} />,
+  Table: (props: ComponentPropsWithoutRef<'table'>) => (
+    <Table {...props} />
+  ),
+  table: (props: ComponentPropsWithoutRef<'table'>) => (
+    <Table {...props} />
+  ),
 }

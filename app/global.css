@@ -145,11 +145,34 @@ input[type='email'] {
   appearance: none;
 }
 
-table {
-  display: block;
-  max-width: fit-content;
-  overflow-x: auto;
+/* Scoped table styling for the Table component (`.prose-table`).
+   Mobile-friendly: the wrapper provides horizontal scroll; cells wrap
+   normally rather than being forced onto a single line. */
+.prose-table {
+  @apply w-full border-collapse text-sm text-left;
+  display: table;
+  white-space: normal;
+}
+
+.prose-table thead {
+  @apply border-b border-neutral-200 dark:border-neutral-800;
+}
+
+.prose-table th {
+  @apply py-2 pr-4 font-medium text-neutral-900 dark:text-neutral-100;
   white-space: nowrap;
+}
+
+.prose-table td {
+  @apply py-2 pr-4 text-neutral-800 dark:text-neutral-200 align-top;
+}
+
+.prose-table tbody tr {
+  @apply border-b border-neutral-100 dark:border-neutral-800/60;
+}
+
+.prose-table tbody tr:last-child {
+  @apply border-b-0;
 }
 
 .title {
