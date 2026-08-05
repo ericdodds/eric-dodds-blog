@@ -1,5 +1,13 @@
-import { BlogPosts } from 'app/components/posts'
+import { BlogPosts, PopularPosts } from 'app/components/posts'
 import Link from 'next/link'
+
+// Posts featured in the "Popular" section of the homepage, in display order.
+// Edit this list to change which posts appear.
+const popularPostSlugs = [
+  'ai-beyond-the-chat-interface',
+  'street-poet-postscript-why-ai-can-feel-cheap',
+  'ai-makes-notion-hubspots-biggest-threat',
+]
 
 export default function Page() {
   return (
@@ -41,8 +49,15 @@ export default function Page() {
         </Link>{' '}
         to say hello.
       </p>
-      <hr></hr>
-      <div className="my-8">
+      <hr className="my-8 border-0 border-t border-neutral-200 dark:border-neutral-800" />
+      <div>
+        <h2 className="mb-4 text-xl font-semibold tracking-tighter">
+          Popular blog posts
+        </h2>
+        <PopularPosts slugs={popularPostSlugs} />
+      </div>
+      <hr className="my-8 border-0 border-t border-neutral-200 dark:border-neutral-800" />
+      <div>
         <h2 className="mb-4 text-xl font-semibold tracking-tighter">
           Recent blog posts
         </h2>

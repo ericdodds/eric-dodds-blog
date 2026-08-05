@@ -37,15 +37,15 @@ const navItems: readonly NavItem[] = [
 
 function DoddsLogo() {
   // Oversized bullet that reads as a dedicated "home" marker instead of
-  // punctuation. `leading-none` keeps it on the text baseline without
-  // inflating the nav height.
+  // punctuation. A CSS-drawn circle (rather than the `•` glyph) is used so it
+  // can be vertically centered precisely against the nav text: the bullet
+  // character sits low in its em box and never aligns to the text's middle
+  // regardless of margin tweaks. `items-center` on the parent Link centers it.
   return (
     <span
       aria-hidden="true"
-      className="inline-flex shrink-0 items-center justify-center text-5xl leading-none -mt-1"
-    >
-      •
-    </span>
+      className="inline-block h-3 w-3 rounded-full bg-current"
+    />
   )
 }
 
