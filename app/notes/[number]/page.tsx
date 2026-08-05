@@ -7,6 +7,7 @@ import { getNoteByNumber } from 'app/lib/github-notes'
 import { resolveNoteBodyWithIssueHtml } from 'app/lib/github-issue-body-html'
 import { noteMdxComponents } from 'app/lib/note-mdx-components'
 import { remarkGithubNoteImages, rehypeGithubNoteImages } from 'app/lib/github-note-images-mdx'
+import { rehypeEmbedUnwrap } from 'app/lib/rehype-embed-unwrap'
 import { formatDate } from 'app/blog/utils'
 import { baseUrl } from 'app/sitemap'
 
@@ -88,7 +89,7 @@ export default async function NotePage({
           options={{
             mdxOptions: {
               remarkPlugins: [remarkGfm, remarkGithubNoteImages],
-              rehypePlugins: [rehypeGithubNoteImages, rehypeSlug],
+              rehypePlugins: [rehypeGithubNoteImages, rehypeSlug, rehypeEmbedUnwrap],
             },
           }}
         />
