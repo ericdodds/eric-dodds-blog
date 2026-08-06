@@ -1,11 +1,10 @@
-import { revalidatePath, revalidateTag } from 'next/cache'
 import { timingSafeEqual } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import {
   applyTypefullyPublishedLinksToGithubIssue,
   type TypefullyDraftPublishedData,
 } from 'app/lib/apply-typefully-published-links'
-import { GITHUB_NOTES_CACHE_TAG } from 'app/lib/github-notes'
+import { revalidateNotesSurfaces } from 'app/lib/revalidate-notes-surfaces'
 
 /**
  * Typefully outbound webhooks (docs do not specify a standard signature format).
@@ -85,9 +84,7 @@ export async function POST(request: Request) {
   }
 
   if (result.updated) {
-    revalidateTag(GITHUB_NOTES_CACHE_TAG, 'default')
-    revalidatePath('/notes')
-    revalidatePath(`/notes/${result.issueNumber}`)
+    revalidateNotesSurfaces([result.issueNumber])
     console.log('[typefully-webhook] updated note social links', {
       issue: result.issueNumber,
       draftId: data.id,

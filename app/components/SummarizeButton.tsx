@@ -3,13 +3,13 @@
 import { useState, useEffect, useRef } from 'react'
 import DOMPurify from 'dompurify'
 import { MODELS } from '../lib/models'
+import { MODEL_ICONS } from './model-icons'
 
 interface SummarizeButtonProps {
-  content: string
-  title: string
+  slug: string
 }
 
-export default function SummarizeButton({ content, title }: SummarizeButtonProps) {
+export default function SummarizeButton({ slug }: SummarizeButtonProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [hasGeneratedSummary, setHasGeneratedSummary] = useState(false)
@@ -42,7 +42,7 @@ export default function SummarizeButton({ content, title }: SummarizeButtonProps
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ content, title, model: modelId }),
+        body: JSON.stringify({ slug, model: modelId }),
       })
 
       if (!response.ok) {
@@ -151,7 +151,7 @@ export default function SummarizeButton({ content, title }: SummarizeButtonProps
                     onClick={() => handleSummarize(model.id)}
                     className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3"
                   >
-                    <span className="text-lg">{model.logo}</span>
+                    <span className="text-lg">{MODEL_ICONS[key]}</span>
                     <span>{model.name}</span>
                   </button>
                 ))}

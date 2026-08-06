@@ -1,12 +1,11 @@
-// Model registry for AI summarization
-import React from 'react'
-import { OpenAI, Claude, Gemini, Perplexity, XAI } from '@lobehub/icons'
+// Model registry for AI summarization.
+// Pure data — no React/icons — so the API route and tests don't pull icon
+// components into the server bundle. Icons live in app/components/model-icons.tsx.
 
 export interface ModelConfig {
   id: string
   name: string
   provider: string
-  logo: React.ReactNode
 }
 
 export const MODELS: Record<string, ModelConfig> = {
@@ -14,31 +13,26 @@ export const MODELS: Record<string, ModelConfig> = {
     id: 'openai/gpt-5',
     name: 'OpenAI',
     provider: 'OpenAI',
-    logo: <OpenAI size={16} />
   },
   'anthropic': {
     id: 'anthropic/claude-sonnet-4.5',
     name: 'Anthropic',
     provider: 'Anthropic',
-    logo: <Claude size={16} />
   },
   'google': {
     id: 'google/gemini-2.5-pro',
     name: 'Google',
     provider: 'Google',
-    logo: <Gemini size={16} />
   },
   'perplexity': {
     id: 'perplexity/sonar-pro',
     name: 'Perplexity',
     provider: 'Perplexity',
-    logo: <Perplexity size={16} />
   },
   'xai': {
     id: 'xai/grok-2',
     name: 'xAI',
     provider: 'xAI',
-    logo: <XAI size={16} />
   }
 }
 

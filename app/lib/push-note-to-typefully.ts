@@ -1,4 +1,4 @@
-import { getNoteByNumber, hasQuotePostedLabel } from 'app/lib/github-notes'
+import { fetchNoteByNumberFresh, hasQuotePostedLabel } from 'app/lib/github-notes'
 import { createTypefullyDraftFromIssue } from 'app/lib/typefully-sync'
 
 export type PushNoteToTypefullyResult =
@@ -19,7 +19,7 @@ export async function pushPublishedNoteToTypefully(
     return { ran: false, reason: 'typefully_env_missing' }
   }
 
-  const note = await getNoteByNumber(issueNumber, { bypassDataCache: true })
+  const note = await fetchNoteByNumberFresh(issueNumber)
   if (!note) {
     return { ran: false, reason: 'note_not_found' }
   }

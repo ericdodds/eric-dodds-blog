@@ -1,16 +1,19 @@
 import { generateText } from 'ai'
 import { getModelById } from '../../lib/models'
+import { getBlogPosts } from '../../blog/utils'
+
+export const maxDuration = 30
 
 export async function POST(request: Request) {
   let model: string | undefined
   try {
     const requestData = await request.json()
-    const { content, title, model: requestModel } = requestData
+    const { slug, model: requestModel } = requestData
     model = requestModel
 
-    if (!content || !title || !model) {
+    if (!slug || !model) {
       return Response.json(
-        { error: 'Content, title, and model are required' },
+        { error: 'Slug and model are required' },
         { status: 400 }
       )
     }
@@ -23,6 +26,15 @@ export async function POST(request: Request) {
         { status: 400 }
       )
     }
+
+    // Resolve the post server-side so clients can't feed arbitrary text
+    // through the gateway (and the page doesn't ship the raw MDX as a prop).
+    const post = getBlogPosts().find((p) => p.slug === slug)
+    if (!post) {
+      return Response.json({ error: 'Post not found' }, { status: 404 })
+    }
+    const { title } = post.metadata
+    const content = post.content
     
     // AI Gateway auth: prefer Vercel OIDC (VERCEL_OIDC_TOKEN, auto-injected on Vercel
     // deployments and `vercel dev`), fall back to a personal AI_GATEWAY_API_KEY for

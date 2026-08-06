@@ -1,23 +1,25 @@
-import { cache } from 'react'
+import { cacheTag } from 'next/cache'
 import { stripTypefullySocialHtmlCommentsForMdx } from 'app/lib/note-social-block'
-import { GITHUB_NOTES_CACHE_TAG, getNotesGitHubRepo } from 'app/lib/github-notes'
+import { GITHUB_NOTES_CACHE_TAG, applyNotesCacheLife, getNotesGitHubRepo } from 'app/lib/github-notes'
 
 const USER_ATTACHMENTS = 'github.com/user-attachments/assets/'
-
-function notesFetchInit(): RequestInit {
-  if (process.env.NODE_ENV === 'development') {
-    return { cache: 'no-store' as const }
-  }
-  return { next: { tags: [GITHUB_NOTES_CACHE_TAG], revalidate: 3600 } }
-}
 
 /**
  * Issue `body` from the REST API uses `github.com/user-attachments/assets/:id`, which
  * returns 404 for unauthenticated / non-browser requests on private repos.
  * GraphQL `bodyHTML` contains the rendered `<img src="…">` URLs GitHub actually serves
  * (e.g. `private-user-images…` with a short-lived JWT).
+ *
+ * 'use cache' both persists across requests (fresh-on-refresh in dev, hour-scale +
+ * webhook tag invalidation in prod) and dedupes same-key calls within a render, so
+ * no react.cache wrapper is needed — wrapping a 'use cache' function in react.cache
+ * crashes prerendering ("Invalid value used as weak map key").
  */
-export const getIssueBodyHtml = cache(async (issueNumber: number): Promise<string | null> => {
+export async function getIssueBodyHtml(issueNumber: number): Promise<string | null> {
+  'use cache'
+  cacheTag(GITHUB_NOTES_CACHE_TAG)
+  applyNotesCacheLife()
+
   const repo = getNotesGitHubRepo()
   const token = process.env.GITHUB_TOKEN?.trim()
   if (!repo || !token || !Number.isFinite(issueNumber)) return null
@@ -42,7 +44,6 @@ export const getIssueBodyHtml = cache(async (issueNumber: number): Promise<strin
       query,
       variables: { owner: repo.owner, name: repo.repo, number: issueNumber },
     }),
-    ...notesFetchInit(),
   })
 
   if (!res.ok) {
@@ -62,7 +63,7 @@ export const getIssueBodyHtml = cache(async (issueNumber: number): Promise<strin
 
   const html = json.data?.repository?.issue?.bodyHTML
   return typeof html === 'string' && html.length > 0 ? html : null
-})
+}
 
 function extractImgSrcsFromIssueBodyHtml(html: string): string[] {
   const out: string[] = []

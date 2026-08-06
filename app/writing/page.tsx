@@ -9,7 +9,6 @@ export const metadata = {
   description: 'Long-form posts and short notes from Eric Dodds.',
 }
 
-export const revalidate = 3600
 
 export default function WritingPage() {
   return (

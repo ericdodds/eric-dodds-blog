@@ -8,6 +8,7 @@ export default function YouTube({ id }: { id: string }) {
         height="100%"
         src={`https://www.youtube.com/embed/${id}`}
         title="YouTube video player"
+        loading="lazy"
         frameBorder="0"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowFullScreen

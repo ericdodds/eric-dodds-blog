@@ -23,9 +23,12 @@ interface PostHogIdentify {
 }
 
 export async function GET(request: NextRequest) {
+  // Read the URL outside the try block: with Cache Components, the first
+  // request access during build throws a control-flow error that marks the
+  // route dynamic, and it must not be swallowed by the catch below.
+  const { searchParams } = new URL(request.url);
   try {
     // Extract query parameters
-    const { searchParams } = new URL(request.url);
     const params: TrackingParams = {
       recipientName: searchParams.get('recipientName') || undefined,
       recipientEmail: searchParams.get('recipientEmail') || undefined,

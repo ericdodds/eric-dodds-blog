@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import { cacheLife } from 'next/cache'
 import Link from 'next/link'
 import { formatDate, getBlogPosts, GITHUB_BASE_URL } from 'app/blog/utils'
 import { baseUrl } from 'app/sitemap'
@@ -7,7 +8,7 @@ import SummarizeButton from 'app/components/SummarizeButton'
 import { MDXRemote } from 'next-mdx-remote/rsc'
 import remarkGfm from 'remark-gfm'
 import rehypeSlug from 'rehype-slug'
-import Image from 'next/image'
+import { MdxImage, MdxImg } from 'app/lib/mdx-image'
 import YouTube from 'app/components/YouTube'
 import Table from 'app/components/Table'
 
@@ -67,7 +68,8 @@ const components = {
   h4: (props) => <h4 {...props} />,
   h5: (props) => <h5 {...props} />,
   h6: (props) => <h6 {...props} />,
-  Image: (props) => <Image {...props} width={Number(props.width) || 800} height={Number(props.height) || 600} />,
+  Image: MdxImage,
+  img: MdxImg,
   a: (props) => <a {...props} />,
   code: (props) => <code {...props} />,
   Table: (props) => (
@@ -94,6 +96,13 @@ function injectSubscribeBeforeFootnotes(content: string): string {
 }
 
 export default async function Blog({ params }) {
+  // Post content comes entirely from files in the repo, so the whole page is
+  // cacheable until the next deploy (build ID invalidates 'use cache' entries).
+  // This also keeps the async MDX compile + image measuring in a cache scope,
+  // which Cache Components requires outside <Suspense>.
+  'use cache'
+  cacheLife('max')
+
   const { slug } = await params
   let post = getBlogPosts().find((post) => post.slug === slug)
 
@@ -116,8 +125,9 @@ export default async function Blog({ params }) {
             width="480" 
             height="150" 
             style={{ background: 'white' }}
-            frameBorder="0" 
+            frameBorder="0"
             scrolling="no"
+            loading="lazy"
             className="w-full max-w-[480px]"
           />
         </div>
@@ -173,7 +183,7 @@ export default async function Blog({ params }) {
             url: `${baseUrl}/blog/${post.slug}`,
             author: {
               '@type': 'Person',
-              name: 'My Portfolio',
+              name: 'Eric Dodds',
             },
           }),
         }}
@@ -195,7 +205,7 @@ export default async function Blog({ params }) {
           </Link>
         </p>
         <div>
-          <SummarizeButton content={post.content} title={post.metadata.title} />
+          <SummarizeButton slug={post.slug} />
         </div>
       </div>
       <article className="prose">

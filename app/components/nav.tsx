@@ -58,16 +58,35 @@ export function Navbar() {
           id="nav"
         >
           <div className="flex w-full min-w-0 max-w-full flex-wrap items-center gap-x-1 gap-y-1 pr-4 md:gap-x-1.5 md:pr-10">
-            {navItems.map(({ path, name, icon }) => (
-              <Link
-                key={path}
-                href={path}
-                aria-label={icon ? name : undefined}
-                className="transition-all hover:text-neutral-800 dark:hover:text-neutral-200 relative inline-flex items-center whitespace-nowrap py-2 px-1 md:py-1 md:px-1.5"
-              >
-                {icon ? <DoddsLogo /> : name}
-              </Link>
-            ))}
+            {navItems.map(({ path, name, icon }) => {
+              const className =
+                'transition-all hover:text-neutral-800 dark:hover:text-neutral-200 relative inline-flex items-center whitespace-nowrap py-2 px-1 md:py-1 md:px-1.5'
+              // External links get a plain anchor: next/link adds no prefetch
+              // value for other origins and can't set target/rel.
+              if (path.startsWith('http')) {
+                return (
+                  <a
+                    key={path}
+                    href={path}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={className}
+                  >
+                    {name}
+                  </a>
+                )
+              }
+              return (
+                <Link
+                  key={path}
+                  href={path}
+                  aria-label={icon ? name : undefined}
+                  className={className}
+                >
+                  {icon ? <DoddsLogo /> : name}
+                </Link>
+              )
+            })}
           </div>
         </nav>
       </div>
