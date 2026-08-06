@@ -1,4 +1,3 @@
-import { revalidatePath, revalidateTag } from 'next/cache'
 import { createHmac, timingSafeEqual } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import {
@@ -8,6 +7,7 @@ import {
   type GitHubWebhookIssue,
 } from 'app/lib/github-notes'
 import { pushPublishedNoteToTypefully } from 'app/lib/push-note-to-typefully'
+import { revalidateNotesSurfaces } from 'app/lib/revalidate-notes-surfaces'
 import {
   fetchGithubIssueForPatch,
   patchGithubIssueBody,
@@ -135,12 +135,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, ignored: 'repository mismatch' })
   }
 
-  revalidateTag(GITHUB_NOTES_CACHE_TAG, 'default')
-  revalidatePath('/notes')
   const n = payload.issue?.number
-  if (typeof n === 'number' && Number.isFinite(n)) {
-    revalidatePath(`/notes/${n}`)
-  }
+  revalidateNotesSurfaces(typeof n === 'number' ? [n] : [])
   console.log('[revalidate-notes] cache cleared for /notes', {
     action: payload.action,
     issue: n,
@@ -222,9 +218,7 @@ export async function POST(request: Request) {
               console.error('[x-quote] PATCH failed:', x_quote_expansion_error)
             } else {
               x_quote_expanded = true
-              revalidateTag(GITHUB_NOTES_CACHE_TAG, 'default')
-              revalidatePath('/notes')
-              revalidatePath(`/notes/${issueNumber}`)
+              revalidateNotesSurfaces([issueNumber])
               console.log('[x-quote] expanded quote into issue', {
                 issue: issueNumber,
                 tweetId: result.quoteTweetId,

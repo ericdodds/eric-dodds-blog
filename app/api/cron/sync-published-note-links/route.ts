@@ -1,8 +1,7 @@
-import { revalidatePath, revalidateTag } from 'next/cache'
 import { timingSafeEqual } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { applyTypefullyPublishedLinksToGithubIssue } from 'app/lib/apply-typefully-published-links'
-import { GITHUB_NOTES_CACHE_TAG } from 'app/lib/github-notes'
+import { revalidateNotesSurfaces } from 'app/lib/revalidate-notes-surfaces'
 import { getTypefullyDraft, listTypefullyDraftsPage } from 'app/lib/typefully-drafts-api'
 
 function verifyCron(request: Request): boolean {
@@ -83,12 +82,7 @@ export async function GET(request: Request) {
   }
 
   if (touchedIssues.size > 0) {
-    revalidateTag(GITHUB_NOTES_CACHE_TAG, 'default')
-    revalidatePath('/notes')
-    const nums = Array.from(touchedIssues)
-    for (let i = 0; i < nums.length; i++) {
-      revalidatePath(`/notes/${nums[i]}`)
-    }
+    revalidateNotesSurfaces(touchedIssues)
   }
 
   return NextResponse.json({

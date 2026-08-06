@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { MDXRemote } from 'next-mdx-remote/rsc'
 import remarkGfm from 'remark-gfm'
 import rehypeSlug from 'rehype-slug'
-import { getNoteByNumber } from 'app/lib/github-notes'
+import { getNoteByNumber, getNotes } from 'app/lib/github-notes'
 import { resolveNoteBodyWithIssueHtml } from 'app/lib/github-issue-body-html'
 import { noteMdxComponents } from 'app/lib/note-mdx-components'
 import { remarkGithubNoteImages, rehypeGithubNoteImages } from 'app/lib/github-note-images-mdx'
@@ -12,6 +12,17 @@ import { formatDate } from 'app/blog/utils'
 import { baseUrl } from 'app/sitemap'
 
 export const revalidate = 3600
+
+// Prerender all known notes at build so first visits don't block on GitHub.
+// Unknown numbers still render on demand (dynamicParams defaults to true).
+export async function generateStaticParams() {
+  try {
+    const notes = await getNotes()
+    return notes.map((note) => ({ number: String(note.number) }))
+  } catch {
+    return []
+  }
+}
 
 function noteExcerpt(body: string | null, max = 160): string {
   if (!body) return ''

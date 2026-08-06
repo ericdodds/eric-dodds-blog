@@ -7,7 +7,7 @@ import SummarizeButton from 'app/components/SummarizeButton'
 import { MDXRemote } from 'next-mdx-remote/rsc'
 import remarkGfm from 'remark-gfm'
 import rehypeSlug from 'rehype-slug'
-import Image from 'next/image'
+import { MdxImage, MdxImg } from 'app/lib/mdx-image'
 import YouTube from 'app/components/YouTube'
 import Table from 'app/components/Table'
 
@@ -67,7 +67,8 @@ const components = {
   h4: (props) => <h4 {...props} />,
   h5: (props) => <h5 {...props} />,
   h6: (props) => <h6 {...props} />,
-  Image: (props) => <Image {...props} width={Number(props.width) || 800} height={Number(props.height) || 600} />,
+  Image: MdxImage,
+  img: MdxImg,
   a: (props) => <a {...props} />,
   code: (props) => <code {...props} />,
   Table: (props) => (
@@ -116,8 +117,9 @@ export default async function Blog({ params }) {
             width="480" 
             height="150" 
             style={{ background: 'white' }}
-            frameBorder="0" 
+            frameBorder="0"
             scrolling="no"
+            loading="lazy"
             className="w-full max-w-[480px]"
           />
         </div>
@@ -173,7 +175,7 @@ export default async function Blog({ params }) {
             url: `${baseUrl}/blog/${post.slug}`,
             author: {
               '@type': 'Person',
-              name: 'My Portfolio',
+              name: 'Eric Dodds',
             },
           }),
         }}

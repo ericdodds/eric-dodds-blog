@@ -1,7 +1,7 @@
-import { revalidatePath, revalidateTag } from 'next/cache'
 import { timingSafeEqual } from 'node:crypto'
 import { NextResponse } from 'next/server'
-import { GITHUB_NOTES_CACHE_TAG, getNotesGitHubRepo } from 'app/lib/github-notes'
+import { getNotesGitHubRepo } from 'app/lib/github-notes'
+import { revalidateNotesSurfaces } from 'app/lib/revalidate-notes-surfaces'
 import {
   fetchGithubIssueForPatch,
   patchGithubIssueBody,
@@ -108,9 +108,7 @@ export async function POST(request: Request) {
     )
   }
 
-  revalidateTag(GITHUB_NOTES_CACHE_TAG, 'default')
-  revalidatePath('/notes')
-  revalidatePath(`/notes/${issueNumber}`)
+  revalidateNotesSurfaces([issueNumber])
 
   return NextResponse.json({
     ok: true,

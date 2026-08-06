@@ -1,5 +1,6 @@
 import fs from 'fs'
 import path from 'path'
+import { cache } from 'react'
 
 const GITHUB_BASE_URL = 'https://github.com/ericdodds/eric-dodds-blog/commits/main'
 
@@ -59,10 +60,12 @@ function getMDXData(dir) {
   })
 }
 
-export function getBlogPosts() {
+// React.cache dedupes the directory read within a render pass — the homepage
+// and blog pages each call this several times (list + metadata + page body).
+export const getBlogPosts = cache(function getBlogPosts() {
   return getMDXData(path.join(process.cwd(), 'app', 'blog', 'posts'))
     .filter(post => post.metadata.published !== 'false' && post.metadata.published !== false && post.metadata.draft !== 'true' && post.metadata.draft !== true);
-}
+})
 
 export { GITHUB_BASE_URL }
 
