@@ -14,7 +14,7 @@ function isProbablyImageUrl(url: string): boolean {
   )
 }
 
-/** Markdown ![]() and MDX <Image src="..." /> — ordered, de-duped. */
+/** Markdown ![](), MDX <Image src="..." />, and HTML <img src="..."> (GitHub's paste format) — ordered, de-duped. */
 export function extractImageUrlsFromIssueBody(md: string): string[] {
   const seen = new Set<string>()
   const urls: string[] = []
@@ -29,8 +29,10 @@ export function extractImageUrlsFromIssueBody(md: string): string[] {
     }
   }
 
-  const mdxImage = /<Image[^>]+src=["']([^"']+)["'][^>]*\/?>/gi
-  while ((m = mdxImage.exec(md)) !== null) {
+  // Matches both MDX <Image .../> and HTML <img ...> — GitHub inserts pasted
+  // images as `<img width="…" alt="Image" src="https://github.com/user-attachments/…">`.
+  const jsxOrHtmlImage = /<(?:Image|img)\b[^>]*\bsrc=["']([^"']+)["'][^>]*\/?>/gi
+  while ((m = jsxOrHtmlImage.exec(md)) !== null) {
     const u = m[1].trim()
     if (u && !seen.has(u) && isProbablyImageUrl(u)) {
       seen.add(u)
@@ -47,8 +49,9 @@ export function issueBodyToSocialPlainText(md: string | null): string {
   let s = md
 
   s = s.replace(/!\[[^\]]*\]\([^)]+\)/g, '')
-  s = s.replace(/<Image[^/>]+\/?>/gi, '')
-  s = s.replace(/<YouTube[^/>]+\/?>/gi, '')
+  s = s.replace(/<Image[^>]*\/?>/gi, '')
+  s = s.replace(/<img[^>]*\/?>/gi, '')
+  s = s.replace(/<YouTube[^>]*\/?>/gi, '')
 
   s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1 $2')
 

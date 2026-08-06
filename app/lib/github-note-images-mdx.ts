@@ -16,6 +16,24 @@ function patchImgPropertiesSrc(properties: Record<string, unknown> | undefined):
   if (proxied) properties.src = proxied
 }
 
+type MdxJsxAttribute = { type: string; name?: string; value?: unknown }
+type MdxJsxImgNode = { type?: string; name?: string; attributes?: MdxJsxAttribute[] }
+
+/**
+ * GitHub inserts pasted images as HTML (`<img alt="Image" src="…">`), which MDX
+ * parses as JSX elements (mdxJsxFlowElement/mdxJsxTextElement) — NOT as mdast
+ * 'html' nodes or hast 'element' nodes, so the other visitors never see them.
+ */
+function patchMdxJsxImgSrc(node: MdxJsxImgNode): void {
+  if (node.name !== 'img' || !Array.isArray(node.attributes)) return
+  const attr = node.attributes.find(
+    (a) => a.type === 'mdxJsxAttribute' && a.name === 'src'
+  )
+  if (!attr || typeof attr.value !== 'string') return
+  const proxied = buildNoteImageProxyUrl(attr.value)
+  if (proxied) attr.value = proxied
+}
+
 /**
  * Rewrite mdast image + inline HTML <img> before MDX compiles to JSX.
  */
@@ -36,6 +54,8 @@ export function remarkGithubNoteImages() {
         }
       )
     })
+    visit(tree, 'mdxJsxFlowElement', (node: MdxJsxImgNode) => patchMdxJsxImgSrc(node))
+    visit(tree, 'mdxJsxTextElement', (node: MdxJsxImgNode) => patchMdxJsxImgSrc(node))
   }
 }
 
