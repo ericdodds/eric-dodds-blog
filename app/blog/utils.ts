@@ -70,12 +70,24 @@ export const getBlogPosts = cache(function getBlogPosts() {
 export { GITHUB_BASE_URL }
 
 export function formatDate(date: string, includeRelative = false) {
-  let currentDate = new Date()
   if (!date.includes('T')) {
     date = `${date}T00:00:00`
   }
   let targetDate = new Date(date)
 
+  let fullDate = targetDate.toLocaleString('en-us', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  })
+
+  if (!includeRelative) {
+    return fullDate
+  }
+
+  // Only touch the current time when a relative date is requested — under
+  // Cache Components, new Date() is an unstable value during prerendering.
+  let currentDate = new Date()
   let yearsAgo = currentDate.getFullYear() - targetDate.getFullYear()
   let monthsAgo = currentDate.getMonth() - targetDate.getMonth()
   let daysAgo = currentDate.getDate() - targetDate.getDate()
@@ -90,16 +102,6 @@ export function formatDate(date: string, includeRelative = false) {
     formattedDate = `${daysAgo}d ago`
   } else {
     formattedDate = 'Today'
-  }
-
-  let fullDate = targetDate.toLocaleString('en-us', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  })
-
-  if (!includeRelative) {
-    return fullDate
   }
 
   return `${fullDate} (${formattedDate})`

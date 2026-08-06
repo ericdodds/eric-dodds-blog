@@ -1,4 +1,20 @@
+import { cacheLife, cacheTag } from 'next/cache'
+
 export const GITHUB_NOTES_CACHE_TAG = 'github-notes' as const
+
+/**
+ * Cache profile for notes data: fresh-on-refresh in dev (so new issues show up
+ * immediately), hour-scale in production where the GitHub webhook invalidates
+ * the tag on changes. Replaces the old fetch-level no-store/revalidate branch.
+ * (Explicit branches because cacheLife's typed overloads reject union strings.)
+ */
+export function applyNotesCacheLife(): void {
+  if (process.env.NODE_ENV === 'development') {
+    cacheLife('seconds')
+  } else {
+    cacheLife('hours')
+  }
+}
 
 export type GitHubNote = {
   id: number
@@ -102,15 +118,11 @@ export function hasQuotePostedLabel(
   return labels.some((l) => l.name === target)
 }
 
-/** In dev, avoid Data Cache so new issues show up on refresh. Production uses tags + ISR for webhooks. */
-function githubFetchInit(): RequestInit {
-  if (process.env.NODE_ENV === 'development') {
-    return { cache: 'no-store' as const }
-  }
-  return { next: { tags: [GITHUB_NOTES_CACHE_TAG], revalidate: 3600 } }
-}
-
 export async function getNotes(): Promise<GitHubNote[]> {
+  'use cache'
+  cacheTag(GITHUB_NOTES_CACHE_TAG)
+  applyNotesCacheLife()
+
   const repoParts = getRepoParts()
   const token = process.env.GITHUB_TOKEN?.trim()
   if (!repoParts || !token) return []
@@ -118,10 +130,7 @@ export async function getNotes(): Promise<GitHubNote[]> {
   const { owner, repo } = repoParts
   const url = `https://api.github.com/repos/${owner}/${repo}/issues?state=open&per_page=100&sort=created&direction=desc`
 
-  const res = await fetch(url, {
-    headers: githubHeaders(token),
-    ...githubFetchInit(),
-  })
+  const res = await fetch(url, { headers: githubHeaders(token) })
 
   if (!res.ok) {
     console.error('[github-notes] list failed', res.status, await res.text().catch(() => ''))
@@ -138,10 +147,11 @@ export async function getNotes(): Promise<GitHubNote[]> {
     .filter((issue) => passesPublishLabel(issue, publishLabel, draftLabel))
 }
 
-export async function getNoteByNumber(
-  issueNumber: number,
-  options?: { bypassDataCache?: boolean }
-): Promise<GitHubNote | null> {
+/**
+ * Uncached fetch of a single note, for writers that must see GitHub's current
+ * state immediately after a webhook event (previously `bypassDataCache: true`).
+ */
+export async function fetchNoteByNumberFresh(issueNumber: number): Promise<GitHubNote | null> {
   const repoParts = getRepoParts()
   const token = process.env.GITHUB_TOKEN?.trim()
   if (!repoParts || !token || !Number.isFinite(issueNumber)) return null
@@ -151,9 +161,7 @@ export async function getNoteByNumber(
 
   const res = await fetch(url, {
     headers: githubHeaders(token),
-    ...(options?.bypassDataCache
-      ? { cache: 'no-store' as const }
-      : githubFetchInit()),
+    cache: 'no-store',
   })
 
   if (!res.ok) return null
@@ -167,4 +175,12 @@ export async function getNoteByNumber(
   if (!passesPublishLabel(note, publishLabel, draftLabel)) return null
 
   return note
+}
+
+export async function getNoteByNumber(issueNumber: number): Promise<GitHubNote | null> {
+  'use cache'
+  cacheTag(GITHUB_NOTES_CACHE_TAG, `note-${issueNumber}`)
+  applyNotesCacheLife()
+
+  return fetchNoteByNumberFresh(issueNumber)
 }

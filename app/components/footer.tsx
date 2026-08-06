@@ -1,3 +1,5 @@
+import { cacheLife } from 'next/cache'
+
 function ArrowIcon() {
   return (
     <svg
@@ -15,7 +17,16 @@ function ArrowIcon() {
   )
 }
 
-export default function Footer() {
+// new Date() is an unstable prerender value under Cache Components; cache it
+// day-scale so the year is computed in a cache scope and stays current.
+async function copyrightYear(): Promise<number> {
+  'use cache'
+  cacheLife('days')
+  return new Date().getFullYear()
+}
+
+export default async function Footer() {
+  const year = await copyrightYear()
   return (
     <footer className="mb-16">
       <ul className="font-sm mt-8 flex flex-col space-x-0 space-y-2 text-neutral-600 md:flex-row md:space-x-4 md:space-y-0 dark:text-neutral-300">
@@ -54,7 +65,7 @@ export default function Footer() {
         </li>
       </ul>
       <p className="mt-8 text-neutral-600 dark:text-neutral-300">
-        © {new Date().getFullYear()} Eric Dodds
+        © {year} Eric Dodds
       </p>
     </footer>
   )

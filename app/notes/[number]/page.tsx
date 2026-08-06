@@ -1,9 +1,15 @@
 import { notFound } from 'next/navigation'
+import { cacheTag } from 'next/cache'
 import Link from 'next/link'
 import { MDXRemote } from 'next-mdx-remote/rsc'
 import remarkGfm from 'remark-gfm'
 import rehypeSlug from 'rehype-slug'
-import { getNoteByNumber, getNotes } from 'app/lib/github-notes'
+import {
+  GITHUB_NOTES_CACHE_TAG,
+  applyNotesCacheLife,
+  getNoteByNumber,
+  getNotes,
+} from 'app/lib/github-notes'
 import { resolveNoteBodyWithIssueHtml } from 'app/lib/github-issue-body-html'
 import { noteMdxComponents } from 'app/lib/note-mdx-components'
 import { remarkGithubNoteImages, rehypeGithubNoteImages } from 'app/lib/github-note-images-mdx'
@@ -11,17 +17,21 @@ import { rehypeEmbedUnwrap } from 'app/lib/rehype-embed-unwrap'
 import { formatDate } from 'app/blog/utils'
 import { baseUrl } from 'app/sitemap'
 
-export const revalidate = 3600
-
 // Prerender all known notes at build so first visits don't block on GitHub.
 // Unknown numbers still render on demand (dynamicParams defaults to true).
+// Cache Components requires at least one param at build, so when GitHub is
+// unavailable (e.g. no local token) fall back to '0' — issue numbers start
+// at 1, so /notes/0 is a permanently valid 404.
 export async function generateStaticParams() {
   try {
     const notes = await getNotes()
-    return notes.map((note) => ({ number: String(note.number) }))
+    if (notes.length > 0) {
+      return notes.map((note) => ({ number: String(note.number) }))
+    }
   } catch {
-    return []
+    // fall through to sentinel
   }
+  return [{ number: '0' }]
 }
 
 function noteExcerpt(body: string | null, max = 160): string {
@@ -59,9 +69,18 @@ export default async function NotePage({
 }: {
   params: Promise<{ number: string }>
 }) {
+  // Cached as a whole page (like blog posts) rather than streamed behind
+  // Suspense: notFound() must run before any shell is sent so unknown note
+  // numbers return a real 404 status, not a 200 shell with a client-side 404.
+  // Tagged per-note so the GitHub webhook invalidates it on edits.
+  'use cache'
+
   const { number: numberParam } = await params
   const num = Number(numberParam)
   if (!Number.isFinite(num)) notFound()
+
+  cacheTag(GITHUB_NOTES_CACHE_TAG, `note-${num}`)
+  applyNotesCacheLife()
 
   const note = await getNoteByNumber(num)
   if (!note) notFound()

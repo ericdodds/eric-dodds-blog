@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import { cacheLife } from 'next/cache'
 import Link from 'next/link'
 import { formatDate, getBlogPosts, GITHUB_BASE_URL } from 'app/blog/utils'
 import { baseUrl } from 'app/sitemap'
@@ -95,6 +96,13 @@ function injectSubscribeBeforeFootnotes(content: string): string {
 }
 
 export default async function Blog({ params }) {
+  // Post content comes entirely from files in the repo, so the whole page is
+  // cacheable until the next deploy (build ID invalidates 'use cache' entries).
+  // This also keeps the async MDX compile + image measuring in a cache scope,
+  // which Cache Components requires outside <Suspense>.
+  'use cache'
+  cacheLife('max')
+
   const { slug } = await params
   let post = getBlogPosts().find((post) => post.slug === slug)
 

@@ -1,8 +1,18 @@
 import { Suspense } from 'react'
 import { EmbeddedTweet } from 'react-tweet'
 import { getTweet, type Tweet as TweetData } from 'react-tweet/api'
+import { cacheLife, cacheTag } from 'next/cache'
 import { GITHUB_NOTES_CACHE_TAG } from 'app/lib/github-notes'
 import 'react-tweet/theme.css'
+
+// Tagged with the notes cache tag so the notes webhook refreshes embedded
+// tweet data too (tweets only render inside notes content).
+async function getCachedTweet(id: string): Promise<TweetData | undefined> {
+  'use cache'
+  cacheTag(GITHUB_NOTES_CACHE_TAG)
+  cacheLife('hours')
+  return getTweet(id)
+}
 
 function TweetFallback({ url }: { url?: string }) {
   return (
@@ -51,11 +61,7 @@ function sanitizeTweet(tweet: TweetData): TweetData {
 async function TweetContent({ id, url }: { id: string; url?: string }) {
   let tweet: TweetData | undefined
   try {
-    // Tagged with the notes cache tag so the notes webhook refreshes embedded
-    // tweet data too (tweets only render inside notes content).
-    tweet = await getTweet(id, {
-      next: { revalidate: 3600, tags: [GITHUB_NOTES_CACHE_TAG] },
-    } as RequestInit)
+    tweet = await getCachedTweet(id)
   } catch {
     return <TweetFallback url={url} />
   }
