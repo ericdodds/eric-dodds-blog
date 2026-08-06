@@ -34,9 +34,17 @@ export function noteImageUrlShouldBeProxied(url: string): boolean {
   }
 }
 
-/** Same-origin path + query the browser and MDX use for a GitHub image `src`. */
-export function buildNoteImageProxyUrl(original: string): string | null {
+/**
+ * Same-origin path + query the browser and MDX use for a GitHub image `src`.
+ * Pass `issueNumber` so the proxy can re-resolve a fresh URL via GraphQL when
+ * the direct fetch fails (private-repo user-attachments, expired JWT links).
+ */
+export function buildNoteImageProxyUrl(original: string, issueNumber?: number): string | null {
   const t = original.trim()
   if (!noteImageUrlShouldBeProxied(t)) return null
-  return `${PROXY_PATH}?url=${encodeURIComponent(t)}`
+  const issue =
+    typeof issueNumber === 'number' && Number.isFinite(issueNumber)
+      ? `&issue=${issueNumber}`
+      : ''
+  return `${PROXY_PATH}?url=${encodeURIComponent(t)}${issue}`
 }

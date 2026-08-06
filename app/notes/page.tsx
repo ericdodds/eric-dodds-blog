@@ -4,7 +4,7 @@ import { MDXRemote } from 'next-mdx-remote/rsc'
 import remarkGfm from 'remark-gfm'
 import rehypeSlug from 'rehype-slug'
 import { getNotes } from 'app/lib/github-notes'
-import { resolveNoteBodyWithIssueHtml } from 'app/lib/github-issue-body-html'
+import { stripTypefullySocialHtmlCommentsForMdx } from 'app/lib/note-social-block'
 import { noteMdxComponents } from 'app/lib/note-mdx-components'
 import { remarkGithubNoteImages, rehypeGithubNoteImages } from 'app/lib/github-note-images-mdx'
 import { rehypeEmbedUnwrap } from 'app/lib/rehype-embed-unwrap'
@@ -32,12 +32,13 @@ function NotesListFallback() {
 
 async function NotesList() {
   const notes = await getNotes()
-  const notesResolved = await Promise.all(
-    notes.map(async (note) => ({
-      ...note,
-      mdxSource: await resolveNoteBodyWithIssueHtml(note.body, note.number),
-    }))
-  )
+  // GitHub image URLs stay in their stable user-attachments form here; the
+  // remark/rehype plugins proxy them through /api/notes-media?issue=N, which
+  // resolves short-lived private-repo URLs at request time.
+  const notesResolved = notes.map((note) => ({
+    ...note,
+    mdxSource: stripTypefullySocialHtmlCommentsForMdx(note.body || ''),
+  }))
   const missingConfig = !process.env.NOTES_GITHUB_REPO?.trim() || !process.env.GITHUB_TOKEN?.trim()
   const publishLabel = process.env.NOTES_PUBLISH_LABEL?.trim()
 
@@ -101,8 +102,8 @@ async function NotesList() {
               components={noteMdxComponents}
               options={{
                 mdxOptions: {
-                  remarkPlugins: [remarkGfm, remarkGithubNoteImages],
-                  rehypePlugins: [rehypeGithubNoteImages, rehypeSlug, rehypeEmbedUnwrap],
+                  remarkPlugins: [remarkGfm, [remarkGithubNoteImages, { issueNumber: note.number }]],
+                  rehypePlugins: [[rehypeGithubNoteImages, { issueNumber: note.number }], rehypeSlug, rehypeEmbedUnwrap],
                 },
               }}
             />
