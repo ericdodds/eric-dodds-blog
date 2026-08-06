@@ -1,4 +1,3 @@
-import { cache } from 'react'
 import { cacheTag } from 'next/cache'
 import { stripTypefullySocialHtmlCommentsForMdx } from 'app/lib/note-social-block'
 import { GITHUB_NOTES_CACHE_TAG, applyNotesCacheLife, getNotesGitHubRepo } from 'app/lib/github-notes'
@@ -11,12 +10,12 @@ const USER_ATTACHMENTS = 'github.com/user-attachments/assets/'
  * GraphQL `bodyHTML` contains the rendered `<img src="…">` URLs GitHub actually serves
  * (e.g. `private-user-images…` with a short-lived JWT).
  *
- * react.cache dedupes within a render pass; 'use cache' persists across requests
- * (fresh-on-refresh in dev, hour-scale + webhook tag invalidation in prod).
+ * 'use cache' both persists across requests (fresh-on-refresh in dev, hour-scale +
+ * webhook tag invalidation in prod) and dedupes same-key calls within a render, so
+ * no react.cache wrapper is needed — wrapping a 'use cache' function in react.cache
+ * crashes prerendering ("Invalid value used as weak map key").
  */
-export const getIssueBodyHtml = cache(fetchIssueBodyHtmlCached)
-
-async function fetchIssueBodyHtmlCached(issueNumber: number): Promise<string | null> {
+export async function getIssueBodyHtml(issueNumber: number): Promise<string | null> {
   'use cache'
   cacheTag(GITHUB_NOTES_CACHE_TAG)
   applyNotesCacheLife()
