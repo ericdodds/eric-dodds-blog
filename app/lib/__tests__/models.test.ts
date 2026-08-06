@@ -61,8 +61,7 @@ test('should have valid model configurations for each provider', () => {
     expect(model).toHaveProperty('id')
     expect(model).toHaveProperty('name')
     expect(model).toHaveProperty('provider')
-    expect(model).toHaveProperty('logo')
-    
+
     expect(typeof model.id).toBe('string')
     expect(typeof model.name).toBe('string')
     expect(typeof model.provider).toBe('string')

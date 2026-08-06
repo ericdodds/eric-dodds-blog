@@ -195,7 +195,7 @@ export default async function Blog({ params }) {
           </Link>
         </p>
         <div>
-          <SummarizeButton content={post.content} title={post.metadata.title} />
+          <SummarizeButton slug={post.slug} />
         </div>
       </div>
       <article className="prose">
