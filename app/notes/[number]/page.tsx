@@ -10,7 +10,7 @@ import {
   getNoteByNumber,
   getNotes,
 } from 'app/lib/github-notes'
-import { resolveNoteBodyWithIssueHtml } from 'app/lib/github-issue-body-html'
+import { stripTypefullySocialHtmlCommentsForMdx } from 'app/lib/note-social-block'
 import { noteMdxComponents } from 'app/lib/note-mdx-components'
 import { remarkGithubNoteImages, rehypeGithubNoteImages } from 'app/lib/github-note-images-mdx'
 import { rehypeEmbedUnwrap } from 'app/lib/rehype-embed-unwrap'
@@ -85,7 +85,10 @@ export default async function NotePage({
   const note = await getNoteByNumber(num)
   if (!note) notFound()
 
-  const mdxSource = await resolveNoteBodyWithIssueHtml(note.body, note.number)
+  // GitHub image URLs stay in their stable user-attachments form; the MDX
+  // plugins proxy them through /api/notes-media?issue=N, which resolves
+  // short-lived private-repo URLs at request time.
+  const mdxSource = stripTypefullySocialHtmlCommentsForMdx(note.body || '')
 
   return (
     <section>
@@ -118,8 +121,8 @@ export default async function NotePage({
           components={noteMdxComponents}
           options={{
             mdxOptions: {
-              remarkPlugins: [remarkGfm, remarkGithubNoteImages],
-              rehypePlugins: [rehypeGithubNoteImages, rehypeSlug, rehypeEmbedUnwrap],
+              remarkPlugins: [remarkGfm, [remarkGithubNoteImages, { issueNumber: num }]],
+              rehypePlugins: [[rehypeGithubNoteImages, { issueNumber: num }], rehypeSlug, rehypeEmbedUnwrap],
             },
           }}
         />
