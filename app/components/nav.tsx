@@ -26,7 +26,7 @@ const navItems: readonly NavItem[] = [
     name: 'about',
   },
   {
-    path: 'https://tokenintelligenceshow.substack.com/',
+    path: 'https://www.tokenintelligenceshow.com/',
     name: 'podcast',
   },
   {
