@@ -1,4 +1,6 @@
 import { cacheLife } from 'next/cache'
+import { Suspense } from 'react'
+import FooterSubscribe from './FooterSubscribe'
 
 function ArrowIcon() {
   return (
@@ -29,6 +31,9 @@ export default async function Footer() {
   const year = await copyrightYear()
   return (
     <footer className="mb-16">
+      <Suspense fallback={null}>
+        <FooterSubscribe />
+      </Suspense>
       <ul className="font-sm mt-8 flex flex-col space-x-0 space-y-2 text-neutral-600 md:flex-row md:space-x-4 md:space-y-0 dark:text-neutral-300">
         <li>
           <a

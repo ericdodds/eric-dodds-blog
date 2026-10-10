@@ -1,20 +1,20 @@
+import type { Metadata } from 'next'
+import SubscribeForm from 'app/components/SubscribeForm'
+
+export const metadata: Metadata = {
+  title: 'Subscribe',
+  description: 'Get an email when Eric Dodds publishes a new post.',
+}
+
 export default function SubscribePage() {
   return (
     <section>
       <h1 className="title font-semibold text-2xl tracking-tighter mb-8">Subscribe</h1>
       <p className="mb-8">
-        Join almost 3,000 subscribers via Substack to get notified about new posts. I write regularly about product, technology and productivity.
+        Get an email when I publish a new post. I write about writing, AI, technology, productivity, and business.
       </p>
 
-      <iframe 
-        src="https://ericdodds.substack.com/embed" 
-        width="480" 
-        height="150" 
-        style={{ background: 'white' }}
-        frameBorder="0" 
-        scrolling="no"
-        className="w-full max-w-[480px]"
-      />
+      <SubscribeForm source="subscribe_page" />
     </section>
-  );
+  )
 }

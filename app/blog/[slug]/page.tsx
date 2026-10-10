@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { formatDate, getBlogPosts, GITHUB_BASE_URL } from 'app/blog/utils'
 import { baseUrl } from 'app/sitemap'
 import ImageModalEnhancer from 'app/components/ImageModalEnhancer'
-import SummarizeButton from 'app/components/SummarizeButton'
 import { MDXRemote } from 'next-mdx-remote/rsc'
 import remarkGfm from 'remark-gfm'
 import rehypeSlug from 'rehype-slug'
@@ -172,7 +171,9 @@ async function BlogContent({ post }: { post: ReturnType<typeof getBlogPosts>[num
           </Link>
         </p>
         <div>
-          <SummarizeButton slug={post.slug} />
+          <Link href="/subscribe" className="text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100 transition-colors">
+            Subscribe
+          </Link>
         </div>
       </div>
       <article className="prose">

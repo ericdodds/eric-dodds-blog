@@ -2,6 +2,23 @@
 
 This is my personal website. It hosts my blog posts, tells readers a bit about me and have a contact form for people who want to reach out. 
 
+## Email subscriptions
+
+The `/subscribe` page and footer submit to `/api/subscribe`, which stores contacts in a Resend segment. Set these server-only variables in `.env.local` for development and in your deployment environment:
+
+```dotenv
+RESEND_API_KEY=re_your_key
+RESEND_SEGMENT_ID=your_segment_id
+```
+
+Create a Resend API key with **Full access** (Sending access cannot manage contacts), and a segment such as **Blog subscribers**. Never expose the key through a `NEXT_PUBLIC_` variable. Existing subscribed contacts are added to the segment; existing global opt-outs are preserved. Submissions use immediate signup without a confirmation email. The form includes a honeypot and an origin check; these are basic abuse controls, not a distributed rate limiter.
+
+This integration captures subscribers only. To notify them, send a Resend Broadcast to the blog segment with an unsubscribe link. Sending requires a verified domain and sender address. Automatic notifications on publication and importing the old Substack list are separate steps.
+
+Successful form submissions emit the Vercel Web Analytics custom event `subscription_success`, with `source` set to `footer` or `subscribe_page`. The event counts successful submissions (including repeat signups), excludes failed and honeypot submissions, and contains no email address. Find it in the project's Web Analytics events; custom events require a Pro or Enterprise plan. Analytics failures do not affect subscription success.
+
+Run the subscription handler tests with `node --import tsx --test app/lib/__tests__/subscribe.test.ts`. They use mocked Resend responses and create no real contacts.
+
 ## Migration from WordPress
 
 I the site on WordPress for years, then finally bit the bullet and migrated it into a super snappy Next.js app on Vercel. 

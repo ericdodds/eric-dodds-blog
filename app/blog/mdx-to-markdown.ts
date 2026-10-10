@@ -26,10 +26,10 @@ export function mdxToMarkdown(content: string, options: MdxToMarkdownOptions = {
     (_, id: string) => `[Watch on YouTube](https://www.youtube.com/watch?v=${id})`
   )
 
-  // <SubscribeEmbed /> -> [Subscribe via Substack](https://ericdodds.substack.com)
+  // Legacy subscription embeds point to the current subscription page.
   result = result.replace(
     /<SubscribeEmbed[^/>]*\/?>/gi,
-    '[Subscribe via Substack](https://ericdodds.substack.com)'
+    `[Subscribe by email](${BASE_URL}/subscribe)`
   )
 
   // <GitHubLink /> -> link to commit history if githubPath provided
