@@ -96,19 +96,21 @@ function injectSubscribeBeforeFootnotes(content: string): string {
 }
 
 export default async function Blog({ params }) {
-  // Post content comes entirely from files in the repo, so the whole page is
-  // cacheable until the next deploy (build ID invalidates 'use cache' entries).
-  // This also keeps the async MDX compile + image measuring in a cache scope,
-  // which Cache Components requires outside <Suspense>.
-  'use cache'
-  cacheLife('max')
-
   const { slug } = await params
   let post = getBlogPosts().find((post) => post.slug === slug)
 
   if (!post) {
     notFound()
   }
+
+  return <BlogContent post={post} />
+}
+
+async function BlogContent({ post }: { post: ReturnType<typeof getBlogPosts>[number] }) {
+  // Include the source in the cache key so saved MDX edits are reflected on
+  // refresh. Keep compilation and image measuring in a cache scope.
+  'use cache'
+  cacheLife('max')
   
   // Inject SubscribeEmbed before footnotes
   const contentWithSubscribe = injectSubscribeBeforeFootnotes(post.content)
