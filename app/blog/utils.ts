@@ -64,7 +64,7 @@ function getMDXData(dir) {
 // and blog pages each call this several times (list + metadata + page body).
 export const getBlogPosts = cache(function getBlogPosts() {
   return getMDXData(path.join(process.cwd(), 'app', 'blog', 'posts'))
-    .filter(post => post.metadata.published !== 'false' && post.metadata.published !== false && post.metadata.draft !== 'true' && post.metadata.draft !== true);
+    .filter(post => process.env.NODE_ENV === 'development' || (post.metadata.published !== 'false' && post.metadata.published !== false && post.metadata.draft !== 'true' && post.metadata.draft !== true));
 })
 
 export { GITHUB_BASE_URL }
