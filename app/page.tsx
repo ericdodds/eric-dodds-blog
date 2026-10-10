@@ -4,9 +4,9 @@ import Link from 'next/link'
 // Posts featured in the "Popular" section of the homepage, in display order.
 // Edit this list to change which posts appear.
 const popularPostSlugs = [
+  'my-first-year-at-vercel',
   'ai-beyond-the-chat-interface',
   'street-poet-postscript-why-ai-can-feel-cheap',
-  'ai-makes-notion-hubspots-biggest-threat',
 ]
 
 export default function Page() {
