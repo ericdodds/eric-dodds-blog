@@ -4,7 +4,6 @@ import { getNotes, getNoteByNumber } from 'app/lib/github-notes'
 import { baseUrl } from 'app/sitemap'
 
 const CONTACT_FORM_URL = 'https://usebasin.com/f/26f1a0ed87e5'
-const SUBSTACK_URL = 'https://ericdodds.substack.com'
 
 export async function GET(
   _request: Request,
@@ -159,9 +158,9 @@ I'd be happy to make your acquaintance and answer any questions you have. Use th
   } else if (pathStr === 'subscribe') {
     markdown = `# Subscribe
 
-Join almost 3,000 subscribers via Substack to get notified about new posts. I write regularly about product, technology and productivity.
+Get an email when I publish a new post. I write about product, technology and productivity.
 
-[Subscribe via Substack](${SUBSTACK_URL})
+[Subscribe by email](${baseUrl}/subscribe)
 `
   } else {
     return new Response('Not found', { status: 404 })
