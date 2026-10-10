@@ -14,7 +14,7 @@ export default function SubscribePage() {
         Get an email when I publish a new post. I write about product, technology and productivity.
       </p>
 
-      <SubscribeForm />
+      <SubscribeForm source="subscribe_page" />
     </section>
   )
 }

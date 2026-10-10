@@ -15,6 +15,8 @@ Create a Resend API key with **Full access** (Sending access cannot manage conta
 
 This integration captures subscribers only. To notify them, send a Resend Broadcast to the blog segment with an unsubscribe link. Sending requires a verified domain and sender address. Automatic notifications on publication and importing the old Substack list are separate steps.
 
+Successful form submissions emit the Vercel Web Analytics custom event `subscription_success`, with `source` set to `footer` or `subscribe_page`. The event counts successful submissions (including repeat signups), excludes failed and honeypot submissions, and contains no email address. Find it in the project's Web Analytics events; custom events require a Pro or Enterprise plan. Analytics failures do not affect subscription success.
+
 Run the subscription handler tests with `node --import tsx --test app/lib/__tests__/subscribe.test.ts`. They use mocked Resend responses and create no real contacts.
 
 ## Migration from WordPress

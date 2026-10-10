@@ -1,8 +1,9 @@
 'use client'
 
 import { useId, useState, type FormEvent } from 'react'
+import { track } from '@vercel/analytics'
 
-export default function SubscribeForm() {
+export default function SubscribeForm({ source }: { source: 'footer' | 'subscribe_page' }) {
   const id = useId()
   const [pending, setPending] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -24,6 +25,13 @@ export default function SubscribeForm() {
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || 'Unable to subscribe. Please try again.')
       setSuccess(true)
+      if (!form.get('website')) {
+        try {
+          track('subscription_success', { source })
+        } catch {
+          // Analytics must not turn a completed signup into a form error.
+        }
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to subscribe. Please try again.')
     } finally {
