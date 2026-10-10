@@ -172,7 +172,7 @@ async function BlogContent({ post }: { post: ReturnType<typeof getBlogPosts>[num
         </p>
         <div>
           <Link href="/subscribe" className="text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100 transition-colors">
-            subscribe
+            Subscribe
           </Link>
         </div>
       </div>
