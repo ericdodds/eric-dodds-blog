@@ -2,7 +2,12 @@ import type { Node } from 'unist'
 import { visit } from 'unist-util-visit'
 import { buildNoteImageProxyUrl } from 'app/lib/rewrite-note-images'
 
-function patchImgPropertiesSrc(properties: Record<string, unknown> | undefined): void {
+export type NoteImagePluginOptions = { issueNumber?: number }
+
+function patchImgPropertiesSrc(
+  properties: Record<string, unknown> | undefined,
+  issueNumber?: number
+): void {
   if (!properties?.src) return
   const raw = properties.src
   const s =
@@ -12,7 +17,7 @@ function patchImgPropertiesSrc(properties: Record<string, unknown> | undefined):
         ? raw.find((x): x is string => typeof x === 'string')
         : undefined
   if (!s) return
-  const proxied = buildNoteImageProxyUrl(s)
+  const proxied = buildNoteImageProxyUrl(s, issueNumber)
   if (proxied) properties.src = proxied
 }
 
@@ -24,24 +29,27 @@ type MdxJsxImgNode = { type?: string; name?: string; attributes?: MdxJsxAttribut
  * parses as JSX elements (mdxJsxFlowElement/mdxJsxTextElement) — NOT as mdast
  * 'html' nodes or hast 'element' nodes, so the other visitors never see them.
  */
-function patchMdxJsxImgSrc(node: MdxJsxImgNode): void {
+function patchMdxJsxImgSrc(node: MdxJsxImgNode, issueNumber?: number): void {
   if (node.name !== 'img' || !Array.isArray(node.attributes)) return
   const attr = node.attributes.find(
     (a) => a.type === 'mdxJsxAttribute' && a.name === 'src'
   )
   if (!attr || typeof attr.value !== 'string') return
-  const proxied = buildNoteImageProxyUrl(attr.value)
+  const proxied = buildNoteImageProxyUrl(attr.value, issueNumber)
   if (proxied) attr.value = proxied
 }
 
 /**
  * Rewrite mdast image + inline HTML <img> before MDX compiles to JSX.
+ * Pass `{ issueNumber }` so the proxy can re-resolve expired/auth-only GitHub
+ * URLs at request time.
  */
-export function remarkGithubNoteImages() {
+export function remarkGithubNoteImages(options?: NoteImagePluginOptions) {
+  const issueNumber = options?.issueNumber
   return function remarkGithubNoteImagesTree(tree: Node) {
     visit(tree, 'image', (node: { url?: string }) => {
       if (typeof node.url !== 'string') return
-      const proxied = buildNoteImageProxyUrl(node.url)
+      const proxied = buildNoteImageProxyUrl(node.url, issueNumber)
       if (proxied) node.url = proxied
     })
     visit(tree, 'html', (node: { value?: string }) => {
@@ -49,24 +57,25 @@ export function remarkGithubNoteImages() {
       node.value = node.value.replace(
         /(<img\b[^>]*\bsrc=)(["'])([^"']+)(\2)/gi,
         (full, pre: string, q: string, url: string) => {
-          const proxied = buildNoteImageProxyUrl(url)
+          const proxied = buildNoteImageProxyUrl(url, issueNumber)
           return proxied ? `${pre}${q}${proxied}${q}` : full
         }
       )
     })
-    visit(tree, 'mdxJsxFlowElement', (node: MdxJsxImgNode) => patchMdxJsxImgSrc(node))
-    visit(tree, 'mdxJsxTextElement', (node: MdxJsxImgNode) => patchMdxJsxImgSrc(node))
+    visit(tree, 'mdxJsxFlowElement', (node: MdxJsxImgNode) => patchMdxJsxImgSrc(node, issueNumber))
+    visit(tree, 'mdxJsxTextElement', (node: MdxJsxImgNode) => patchMdxJsxImgSrc(node, issueNumber))
   }
 }
 
 /**
  * Catch any `img` in hast (covers MDX/GMF output that skipped remark passes).
  */
-export function rehypeGithubNoteImages() {
+export function rehypeGithubNoteImages(options?: NoteImagePluginOptions) {
+  const issueNumber = options?.issueNumber
   return function rehypeGithubNoteImagesTree(tree: Node) {
     visit(tree, 'element', (node: Record<string, unknown>) => {
       if (node.tagName !== 'img') return
-      patchImgPropertiesSrc(node.properties as Record<string, unknown> | undefined)
+      patchImgPropertiesSrc(node.properties as Record<string, unknown> | undefined, issueNumber)
     })
   }
 }
