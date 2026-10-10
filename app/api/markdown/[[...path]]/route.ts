@@ -158,7 +158,7 @@ I'd be happy to make your acquaintance and answer any questions you have. Use th
   } else if (pathStr === 'subscribe') {
     markdown = `# Subscribe
 
-Get an email when I publish a new post. I write about AI, writing, technology, and productivity.
+Get an email when I publish a new post. I write about writing, AI, technology, productivity, and business.
 
 [Subscribe by email](${baseUrl}/subscribe)
 `
