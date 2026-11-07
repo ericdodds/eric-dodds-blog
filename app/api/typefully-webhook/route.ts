@@ -1,46 +1,11 @@
-import { timingSafeEqual } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import {
   applyTypefullyPublishedLinksToGithubIssue,
   type TypefullyDraftPublishedData,
 } from 'app/lib/apply-typefully-published-links'
 import { revalidateNotesSurfaces } from 'app/lib/revalidate-notes-surfaces'
-
-/**
- * Typefully outbound webhooks (docs do not specify a standard signature format).
- * Set TYPEFULLY_WEBHOOK_SECRET and send the same value as:
- * - Authorization: Bearer <secret>, or
- * - X-Typefully-Webhook-Secret: <secret>
- */
-function verifyTypefullyWebhook(request: Request): boolean {
-  const secret = process.env.TYPEFULLY_WEBHOOK_SECRET?.trim()
-  if (!secret) return false
-
-  const auth = request.headers.get('authorization')
-  const bearer = auth?.startsWith('Bearer ') ? auth.slice(7).trim() : ''
-  try {
-    if (bearer) {
-      const a = Buffer.from(bearer)
-      const b = Buffer.from(secret)
-      if (a.length === b.length && timingSafeEqual(a, b)) return true
-    }
-  } catch {
-    /* invalid */
-  }
-
-  const header = request.headers.get('x-typefully-webhook-secret')
-  try {
-    if (header) {
-      const a = Buffer.from(header.trim())
-      const b = Buffer.from(secret)
-      if (a.length === b.length && timingSafeEqual(a, b)) return true
-    }
-  } catch {
-    /* invalid */
-  }
-
-  return false
-}
+import { verifyTypefullyWebhook } from 'app/lib/typefully-webhook'
+import { parseGithubIssueRefFromScratchpad } from 'app/lib/note-social-block'
 
 type WebhookPayload = {
   event?: string
@@ -48,22 +13,28 @@ type WebhookPayload = {
 }
 
 export async function POST(request: Request) {
-  if (!process.env.TYPEFULLY_WEBHOOK_SECRET?.trim()) {
+  const secret = process.env.TYPEFULLY_WEBHOOK_SECRET?.trim()
+  if (!secret) {
     return NextResponse.json(
       { message: 'TYPEFULLY_WEBHOOK_SECRET is not configured' },
       { status: 503 }
     )
   }
 
-  if (!verifyTypefullyWebhook(request)) {
+  const body = await request.text()
+  if (!verifyTypefullyWebhook(body, request.headers, secret)) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
   }
 
   let payload: WebhookPayload
   try {
-    payload = (await request.json()) as WebhookPayload
+    payload = JSON.parse(body) as WebhookPayload
   } catch {
     return NextResponse.json({ message: 'Invalid JSON' }, { status: 400 })
+  }
+
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    return NextResponse.json({ message: 'Invalid payload' }, { status: 400 })
   }
 
   if (payload.event !== 'draft.published') {
@@ -73,6 +44,24 @@ export async function POST(request: Request) {
   const data = payload.data
   if (!data?.id || data.social_set_id == null) {
     return NextResponse.json({ message: 'Missing draft data' }, { status: 400 })
+  }
+
+  const expectedSet = process.env.TYPEFULLY_SOCIAL_SET_ID?.trim()
+  if (!expectedSet) {
+    return NextResponse.json(
+      { message: 'TYPEFULLY_SOCIAL_SET_ID is not configured' },
+      { status: 503 }
+    )
+  }
+  // Team webhooks include other social sets after accounts are combined.
+  if (String(data.social_set_id) !== expectedSet) {
+    return NextResponse.json({ ok: true, updated: false, skip_reason: 'different social set' })
+  }
+
+  // Drafts created directly in Typefully need not be linked to a Notes issue.
+  // Acknowledge them so normal publishing does not cause retries/auto-disable.
+  if (!parseGithubIssueRefFromScratchpad(data.scratchpad_text)) {
+    return NextResponse.json({ ok: true, updated: false, skip_reason: 'not a note draft' })
   }
 
   const result = await applyTypefullyPublishedLinksToGithubIssue(data)

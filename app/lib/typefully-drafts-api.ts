@@ -14,6 +14,7 @@ export type TypefullyDraftListItem = {
   scratchpad_text?: string | null
   x_published_url?: string | null
   linkedin_published_url?: string | null
+  substack_published_url?: string | null
   threads_published_url?: string | null
   bluesky_published_url?: string | null
   mastodon_published_url?: string | null

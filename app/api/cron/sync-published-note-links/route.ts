@@ -66,6 +66,7 @@ export async function GET(request: Request) {
         status: full.status,
         x_published_url: full.x_published_url,
         linkedin_published_url: full.linkedin_published_url,
+        substack_published_url: full.substack_published_url,
         threads_published_url: full.threads_published_url,
         bluesky_published_url: full.bluesky_published_url,
         mastodon_published_url: full.mastodon_published_url,
