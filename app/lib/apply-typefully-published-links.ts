@@ -17,6 +17,7 @@ export type TypefullyDraftPublishedData = {
   status?: string | null
   x_published_url?: string | null
   linkedin_published_url?: string | null
+  substack_published_url?: string | null
   threads_published_url?: string | null
   bluesky_published_url?: string | null
   mastodon_published_url?: string | null
@@ -33,7 +34,10 @@ export async function applyTypefullyPublishedLinksToGithubIssue(
   data: TypefullyDraftPublishedData
 ): Promise<ApplyPublishedLinksResult> {
   const expectedSet = process.env.TYPEFULLY_SOCIAL_SET_ID?.trim()
-  if (expectedSet && String(data.social_set_id) !== expectedSet) {
+  if (!expectedSet) {
+    return { ok: false, reason: 'TYPEFULLY_SOCIAL_SET_ID is not configured' }
+  }
+  if (String(data.social_set_id) !== expectedSet) {
     return { ok: false, reason: 'social_set_id mismatch' }
   }
 

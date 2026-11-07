@@ -31,6 +31,25 @@ I used the [Vercel Portfolio Blog Starter](https://github.com/vercel/examples/tr
 
 You should be able to clone this repo and get the app running pretty easily. 
 
+## Typefully webhook
+
+Configure `https://ericdodds.com/api/typefully-webhook` for **Draft Published** events.
+Set `TYPEFULLY_WEBHOOK_SECRET` in Vercel to the webhook secret shown in Typefully
+(not the Typefully API key), then deploy. The endpoint verifies Typefully's
+HMAC-SHA256 signature over the timestamp and raw request body. It accepts retries
+for up to 65 minutes after the event timestamp and ignores drafts without a
+`Source: https://github.com/owner/repo/issues/number` reference in their scratchpad.
+
+`TYPEFULLY_SOCIAL_SET_ID` is required and must identify the `@ericdodds` social
+set (currently configured as `276617`). Deliveries from other social sets are
+acknowledged and ignored, even when they reference a Notes issue. Published
+Substack Notes URLs appear alongside X and LinkedIn in the note's **Discuss on
+social** links. Both the webhook and the backup sync preserve Substack links.
+
+If Typefully has auto-disabled the webhook, re-enable it after deploying the fix
+and verify a published Notes draft receives a successful delivery in Typefully's
+webhook logs. Run regression tests with `npm run test:typefully-webhook`.
+
 ---
 
 ## Summary of Changes from Vercel Blog Starter

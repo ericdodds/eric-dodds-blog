@@ -36,6 +36,7 @@ export type PublishedPlatformLink = { label: string; url: string }
 export function collectPublishedPlatformLinks(data: {
   x_published_url?: string | null
   linkedin_published_url?: string | null
+  substack_published_url?: string | null
   threads_published_url?: string | null
   bluesky_published_url?: string | null
   mastodon_published_url?: string | null
@@ -47,6 +48,7 @@ export function collectPublishedPlatformLinks(data: {
   }
   add('X', data.x_published_url)
   add('LinkedIn', data.linkedin_published_url)
+  add('Substack', data.substack_published_url)
   add('Threads', data.threads_published_url)
   add('Bluesky', data.bluesky_published_url)
   add('Mastodon', data.mastodon_published_url)
