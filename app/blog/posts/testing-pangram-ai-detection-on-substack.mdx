@@ -67,7 +67,7 @@ I ran the first test on show notes I needed to publish the same week. The episod
 
 Pangram scored the content at AI 64%, AI-assisted 0%, and Human 36%, which seemed very accurate. In editing, I kept the general shape of the AI-generated notes, but did surgery on style, syntax, and some framing. 
 
-<Image src="/images/blog/testing-pangram-ai-detection-on-substack/test-1-full-human-edit-pangram-substack.png" alt="Pangram detection score for Test 1: AI-generated show notes with full human edit" width={800} height={600} />
+<Image src="/images/blog/testing-pangram-ai-detection-on-substack/test-1-full-human-edit-pangram-substack.png" alt="Pangram detection score for Test 1: AI-generated show notes with full human edit" width={800} height={600} className="w-full h-auto" />
 
 ### Test 2: AI-generated, light human edit
 
@@ -79,7 +79,7 @@ Pangram scored the content at AI 53%, AI-assisted 0%, Human 47%. This was the mo
 
 My hypothesis on how this content scored 47% human is that the inputs—the spoken-word transcript and previously edited show notes for reference—made the content code less as raw AI generation, making the human edits on much more potent. 
 
-<Image src="/images/blog/testing-pangram-ai-detection-on-substack/test-2-light-edits-pangram-substack.png" alt="Pangram detection score for Test 2: AI-generated show notes with light human edit" width={800} height={600} />
+<Image src="/images/blog/testing-pangram-ai-detection-on-substack/test-2-light-edits-pangram-substack.png" alt="Pangram detection score for Test 2: AI-generated show notes with light human edit" width={800} height={600} className="w-full h-auto" />
 
 ### Test 3: AI-generated
 
@@ -87,7 +87,7 @@ As a follow-up to the previous test, I ran detection on the original set of gene
 
 Pangram scored the content at AI 45%, AI-assisted 55%, Human 0%. This seemed much more accurate, but highlights the potential impact of even light editing on Pangram’s detection algorithms. Anecdote isn’t evidence, but this disparity was one of the most interesting highlights from my testing. 
 
-<Image src="/images/blog/testing-pangram-ai-detection-on-substack/test-3-no-edits-pangram-substack.png" alt="Pangram detection score for Test 3: AI-generated show notes with no human edits" width={800} height={600} />
+<Image src="/images/blog/testing-pangram-ai-detection-on-substack/test-3-no-edits-pangram-substack.png" alt="Pangram detection score for Test 3: AI-generated show notes with no human edits" width={800} height={600} className="w-full h-auto" />
 
 ### Test 4: Human-written from AI-generated outline
 
@@ -97,7 +97,7 @@ I built a skill for generating a transcript summary and show notes outline, then
 
 AI-outline-to-hand-written-copy is the process I will use going forward. 
 
-<Image src="/images/blog/testing-pangram-ai-detection-on-substack/test-4-human-written-ai-outline-pangram-substack.png" alt="Pangram detection score for Test 4: human-written show notes from an AI-generated outline" width={800} height={600} />
+<Image src="/images/blog/testing-pangram-ai-detection-on-substack/test-4-human-written-ai-outline-pangram-substack.png" alt="Pangram detection score for Test 4: human-written show notes from an AI-generated outline" width={800} height={600} className="w-full h-auto" />
 
 ### Test 5: AI generated, light human edit (Claude Sonnet 4.6)
 
@@ -111,7 +111,7 @@ Pangram scored this content as 100% AI generated. While that’s close to accura
 
 There are many variables at play and this wasn’t a scientific test, but it’s not hard to make the case that the latest models are simply far more capable than those of yestermonth. 
 
-<Image src="/images/blog/testing-pangram-ai-detection-on-substack/test-5-light-edits-claude-sonnet-4-6-pangram-substack.png" alt="Pangram detection score for Test 5: Claude Sonnet 4.6-generated show notes with light human edit" width={800} height={600} />
+<Image src="/images/blog/testing-pangram-ai-detection-on-substack/test-5-light-edits-claude-sonnet-4-6-pangram-substack.png" alt="Pangram detection score for Test 5: Claude Sonnet 4.6-generated show notes with light human edit" width={800} height={600} className="w-full h-auto" />
 
 ### Test 6: Human-written sketch from my blog
 
@@ -121,19 +121,19 @@ I drafted a Substack article with text from a sketch called [Street Poet](https:
 
 Pangram scored it at 100% Human, which was not only accurate, but made me feel good. 
 
-<Image src="/images/blog/testing-pangram-ai-detection-on-substack/test-6-human-written-sketch-pangram-substack.png" alt="Pangram detection score for Test 6: human-written sketch from my blog" width={800} height={600} />
+<Image src="/images/blog/testing-pangram-ai-detection-on-substack/test-6-human-written-sketch-pangram-substack.png" alt="Pangram detection score for Test 6: human-written sketch from my blog" width={800} height={600} className="w-full h-auto" />
 
 ### Test 7: The Street Poet’s poem
 
 Out of curiosity, I also ran detection on the Street Poet’s poem[^1], but sadly, it was too short for Pangram to run a scan.
 
-<Image src="/images/blog/testing-pangram-ai-detection-on-substack/test-7-human-written-poem-pangram-substack.png" alt="Pangram detection result for Test 7: human-written poem too short to scan" width={800} height={600} />
+<Image src="/images/blog/testing-pangram-ai-detection-on-substack/test-7-human-written-poem-pangram-substack.png" alt="Pangram detection result for Test 7: human-written poem too short to scan" width={800} height={600} className="w-full h-auto" />
 
 ### Test 8: This blog post
 
 To uphold intellectual honesty, I had to run this post itself through Pangram detection, and I'm proud to say it's 100% artisanal human writing. 
 
-<Image src="/images/blog/testing-pangram-ai-detection-on-substack/test-8-human-written-blog-post-pangram-substack.png" alt="Pangram detection score for Test 8: this blog post" width={800} height={600} />
+<Image src="/images/blog/testing-pangram-ai-detection-on-substack/test-8-human-written-blog-post-pangram-substack.png" alt="Pangram detection score for Test 8: this blog post" width={800} height={600} className="w-full h-auto" />
 
 ## Thoughts and learnings
 
